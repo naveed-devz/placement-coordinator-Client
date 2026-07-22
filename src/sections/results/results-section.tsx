@@ -20,7 +20,7 @@ export function ResultsSection() {
           </Button>
         }
       />
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: "Latest score", value: "88%", icon: Trophy },
           { label: "Best score", value: "91%", icon: Star },
@@ -28,7 +28,7 @@ export function ResultsSection() {
           { label: "Feedback notes", value: "8", icon: MessageSquareText },
         ].map((item) => (
           <Card key={item.label}>
-            <CardContent className="flex items-center gap-3 p-4">
+            <CardContent className="flex min-w-0 items-center gap-3 p-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-primary">
                 <item.icon className="h-5 w-5" />
               </div>

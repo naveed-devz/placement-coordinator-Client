@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Code2, Play, Send, TerminalSquare } from "lucide-react";
+import { Code2, Play, RotateCcw, Send, TerminalSquare } from "lucide-react";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,32 @@ import { codingPractice } from "@/data/student";
 export function CodingPracticeSection({ onAction }: { onAction: (message: string) => void }) {
   const [selectedProblem, setSelectedProblem] = useState(codingPractice[0]);
   const [language, setLanguage] = useState("TypeScript");
+  const [testResult, setTestResult] = useState("No test run yet.");
+  const [codeDrafts, setCodeDrafts] = useState<Record<string, string>>({
+    [codingPractice[0].title]: `function solve(input: string) {
+  const values = input.trim().split(" ");
+  return values.length;
+}`,
+  });
+
+  const currentCode =
+    codeDrafts[selectedProblem.title] ??
+    `function solve(input: string) {
+  // Write your ${language} solution here
+  return "";
+}`;
+
+  function updateCode(value: string) {
+    setCodeDrafts((drafts) => ({ ...drafts, [selectedProblem.title]: value }));
+  }
+
+  function resetCode() {
+    updateCode(`function solve(input: string) {
+  // Write your ${language} solution here
+  return "";
+}`);
+    setTestResult("Editor reset.");
+  }
 
   return (
     <>
@@ -89,15 +115,33 @@ export function CodingPracticeSection({ onAction }: { onAction: (message: string
                 Write an optimized solution, add edge-case comments, and submit once the sample tests pass.
               </p>
             </div>
-            <div className="min-h-56 rounded-lg border bg-slate-950 p-4 font-mono text-sm leading-6 text-slate-100">
-              <p className="text-slate-400">// {language} solution draft</p>
-              <p>function solve(input: string) {" {"}</p>
-              <p className="pl-4 text-slate-300">const values = input.trim().split(" ");</p>
-              <p className="pl-4 text-slate-300">return values.length;</p>
-              <p>{"}"}</p>
+            <div className="overflow-hidden rounded-lg border bg-slate-950">
+              <div className="flex items-center justify-between border-b border-slate-800 px-4 py-2 text-xs text-slate-300">
+                <span>{language} editor</span>
+                <button className="inline-flex items-center gap-1 hover:text-white" onClick={resetCode}>
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reset
+                </button>
+              </div>
+              <textarea
+                className="min-h-72 w-full resize-y bg-slate-950 p-4 font-mono text-sm leading-6 text-slate-100 outline-none"
+                spellCheck={false}
+                value={currentCode}
+                onChange={(event) => updateCode(event.target.value)}
+              />
+            </div>
+            <div className="rounded-lg border bg-background p-3 text-sm">
+              <p className="font-semibold">Console</p>
+              <p className="mt-2 text-muted-foreground">{testResult}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Button variant="outline" onClick={() => onAction("Sample tests executed.")}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setTestResult("3/4 sample tests passed. Check empty input edge case.");
+                  onAction("Sample tests executed.");
+                }}
+              >
                 <Play className="h-4 w-4" />
                 Run Tests
               </Button>

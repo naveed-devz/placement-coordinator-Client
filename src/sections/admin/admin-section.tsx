@@ -482,7 +482,7 @@ function CreateSectionForm({ onCreateSection }: { onCreateSection: (section: Sec
             onCreateSection({
               id: crypto.randomUUID(),
               name: sectionName,
-              code: code.trim() || sectionName.toUpperCase().replaceAll(" ", "-"),
+              code: code.trim() || sectionName.toUpperCase().replace(/\s+/g, "-"),
               department,
               batch,
               academicYear: "2026-2027",

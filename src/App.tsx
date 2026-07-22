@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { AdminShell } from "@/components/layout/admin-shell";
 import { LoginScreen } from "@/components/layout/login-screen";
 import { StudentShell } from "@/components/layout/student-shell";
 import { initialAnnouncements, initialAssessments, initialHomework, initialTasks } from "@/data/student";
+import { AdminSection } from "@/sections/admin/admin-section";
 import { ActivitiesSection } from "@/sections/activities/activities-section";
 import { AnnouncementsSection } from "@/sections/announcements/announcements-section";
 import { AssessmentsSection } from "@/sections/assessments/assessments-section";
@@ -13,11 +15,15 @@ import { PreparationProgressSection } from "@/sections/preparation-progress/prep
 import { ProfileSection } from "@/sections/profile/profile-section";
 import { ResultsSection } from "@/sections/results/results-section";
 import { SelfAssessmentSection } from "@/sections/self-assessment/self-assessment-section";
+import type { AdminNavLabel } from "@/types/admin";
+import type { UserRole } from "@/types/auth";
 import type { AnnouncementItem, AssessmentItem, HomeworkItem, NavLabel, TaskItem } from "@/types/student";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>("student");
   const [activeNav, setActiveNav] = useState<NavLabel>("Dashboard");
+  const [activeAdminNav, setActiveAdminNav] = useState<AdminNavLabel>("Dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [query, setQuery] = useState("");
@@ -96,7 +102,34 @@ function App() {
   }
 
   if (!isLoggedIn) {
-    return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
+    return (
+      <LoginScreen
+        onLogin={(role) => {
+          setUserRole(role);
+          setIsLoggedIn(true);
+          setMobileMenuOpen(false);
+          setActiveNav("Dashboard");
+          setActiveAdminNav("Dashboard");
+        }}
+      />
+    );
+  }
+
+  if (userRole === "admin") {
+    return (
+      <AdminShell
+        activeNav={activeAdminNav}
+        mobileMenuOpen={mobileMenuOpen}
+        toastMessage={toastMessage}
+        onChangeNav={setActiveAdminNav}
+        onCloseMenu={() => setMobileMenuOpen(false)}
+        onOpenMenu={() => setMobileMenuOpen(true)}
+        onLogout={() => setIsLoggedIn(false)}
+        onDismissToast={() => setToastMessage("")}
+      >
+        <AdminSection activeNav={activeAdminNav} onAction={showToast} />
+      </AdminShell>
+    );
   }
 
   return (

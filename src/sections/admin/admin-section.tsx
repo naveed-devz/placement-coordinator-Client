@@ -1,0 +1,1119 @@
+import { useState } from "react";
+import {
+  BarChart3,
+  ClipboardList,
+  Eye,
+  FileText,
+  Plus,
+  Send,
+  ShieldCheck,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { SectionIntro } from "@/components/common/section-intro";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import {
+  adminAssessments,
+  adminCoordinators,
+  adminMetrics,
+  adminSections,
+  adminStudents,
+  adminTasks,
+  coordinatorRoles,
+} from "@/data/admin";
+import type {
+  AdminAssessment,
+  AdminNavLabel,
+  AdminStudentRow,
+  AdminTask,
+  CoordinatorRole,
+  CoordinatorRow,
+  SectionRow,
+} from "@/types/admin";
+
+export function AdminSection({ activeNav, onAction }: { activeNav: AdminNavLabel; onAction: (message: string) => void }) {
+  const [sections, setSections] = useState<SectionRow[]>(adminSections);
+  const [students, setStudents] = useState<AdminStudentRow[]>(adminStudents);
+  const [coordinators, setCoordinators] = useState<CoordinatorRow[]>(adminCoordinators);
+  const [roles, setRoles] = useState<CoordinatorRole[]>(coordinatorRoles);
+  const [tasks, setTasks] = useState<AdminTask[]>(adminTasks);
+  const [assessments, setAssessments] = useState<AdminAssessment[]>(adminAssessments);
+  const [selectedSectionId, setSelectedSectionId] = useState(sections[2]?.id ?? sections[0]?.id);
+  const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id ?? "");
+
+  const selectedSection = sections.find((section) => section.id === selectedSectionId) ?? sections[0];
+  const selectedStudent = students.find((student) => student.id === selectedStudentId) ?? students[0];
+
+  function createSection(section: SectionRow) {
+    setSections((items) => [section, ...items]);
+    setSelectedSectionId(section.id);
+    onAction("Section created.");
+  }
+
+  function moveStudent(studentId: string, sectionName: string) {
+    setStudents((items) => items.map((student) => (student.id === studentId ? { ...student, section: sectionName } : student)));
+    onAction("Student moved to another section.");
+  }
+
+  function addCoordinator(coordinator: CoordinatorRow) {
+    setCoordinators((items) => [coordinator, ...items]);
+    onAction("Coordinator added.");
+  }
+
+  function addRole(role: CoordinatorRole) {
+    setRoles((items) => [role, ...items]);
+    onAction("Coordinator role created.");
+  }
+
+  function addTask(task: AdminTask) {
+    setTasks((items) => [task, ...items]);
+    onAction("Task created and preview updated.");
+  }
+
+  function addAssessment(assessment: AdminAssessment) {
+    setAssessments((items) => [assessment, ...items]);
+    onAction("Assessment created. Preview is ready.");
+  }
+
+  if (activeNav === "Students") {
+    return (
+      <StudentsAdmin
+        sections={sections}
+        students={students}
+        selectedStudent={selectedStudent}
+        onSelectStudent={setSelectedStudentId}
+        onMoveStudent={moveStudent}
+      />
+    );
+  }
+
+  if (activeNav === "Sections") {
+    return (
+      <SectionsAdmin
+        sections={sections}
+        students={students}
+        selectedSection={selectedSection}
+        selectedStudent={selectedStudent}
+        onCreateSection={createSection}
+        onSelectSection={setSelectedSectionId}
+        onSelectStudent={setSelectedStudentId}
+        onMoveStudent={moveStudent}
+      />
+    );
+  }
+
+  if (activeNav === "Coordinators") {
+    return <CoordinatorsAdmin coordinators={coordinators} roles={roles} sections={sections} onAddCoordinator={addCoordinator} onAddRole={addRole} />;
+  }
+
+  if (activeNav === "Tasks") {
+    return <TasksAdmin tasks={tasks} sections={sections} onAddTask={addTask} />;
+  }
+
+  if (activeNav === "Assessments") {
+    return <AssessmentsAdmin assessments={assessments} sections={sections} onAddAssessment={addAssessment} />;
+  }
+
+  if (activeNav === "Announcements") return <AnnouncementsAdmin onAction={onAction} sections={sections} />;
+  if (activeNav === "Reports") return <ReportsAdmin sections={sections} students={students} />;
+  if (activeNav === "Settings") return <SettingsAdmin onAction={onAction} />;
+  if (activeNav === "Groups") return <GroupsAdmin onAction={onAction} />;
+
+  return <AdminDashboard sections={sections} students={students} coordinators={coordinators} tasks={tasks} assessments={assessments} onAction={onAction} />;
+}
+
+function AdminDashboard({
+  sections,
+  students,
+  coordinators,
+  tasks,
+  assessments,
+  onAction,
+}: {
+  sections: SectionRow[];
+  students: AdminStudentRow[];
+  coordinators: CoordinatorRow[];
+  tasks: AdminTask[];
+  assessments: AdminAssessment[];
+  onAction: (message: string) => void;
+}) {
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Organization Admin"
+        title="Institution placement operations dashboard."
+        description="Manage students through sections, assign coordinators, publish work, create assessments, and monitor readiness."
+        action={
+          <Button onClick={() => onAction("Quick create opened.")}>
+            <Plus className="h-4 w-4" />
+            Quick Create
+          </Button>
+        }
+      />
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {adminMetrics.map((metric) => (
+          <Card key={metric.label}>
+            <CardContent className="p-4">
+              <div className={`mb-4 inline-flex rounded-lg px-3 py-2 text-sm font-semibold ${metric.tone}`}>{metric.label}</div>
+              <p className="text-3xl font-bold">{metric.value}</p>
+              <p className="text-sm text-muted-foreground">{metric.detail}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Section Health</CardTitle>
+            <CardDescription>Students are managed through their assigned sections.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {sections.map((section) => (
+              <div key={section.id} className="rounded-lg border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-semibold">{section.name}</p>
+                  <Badge variant={section.status === "Active" ? "secondary" : "warning"}>{section.status}</Badge>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {students.filter((student) => student.section === section.name).length} students · {section.coordinator}
+                </p>
+                <Progress className="mt-3" value={section.readiness} />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Operations Queue</CardTitle>
+            <CardDescription>Current admin workload.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              { label: "Coordinators", value: coordinators.length, icon: ShieldCheck },
+              { label: "Active tasks", value: tasks.length, icon: ClipboardList },
+              { label: "Assessments", value: assessments.length, icon: FileText },
+              { label: "Students needing attention", value: students.filter((student) => student.status !== "Active").length, icon: Users },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-3 rounded-lg border p-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-primary">
+                  <item.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{item.label}</p>
+                  <p className="text-xl font-bold">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+    </>
+  );
+}
+
+function StudentDetail({
+  student,
+  sections,
+  onMoveStudent,
+}: {
+  student: AdminStudentRow;
+  sections: SectionRow[];
+  onMoveStudent: (studentId: string, sectionName: string) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Student Detail</CardTitle>
+        <CardDescription>Personal details, section, groups, progress, and pending work.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border bg-background p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-lg font-bold">{student.name}</p>
+              <p className="text-sm text-muted-foreground">{student.rollNo} · {student.section}</p>
+            </div>
+            <Badge variant={student.status === "Active" ? "secondary" : "danger"}>{student.status}</Badge>
+          </div>
+          <div className="mt-4 grid gap-2 text-sm text-muted-foreground">
+            <p>Email: {student.email}</p>
+            <p>Phone: {student.phone}</p>
+            <p>Groups: {student.groups}</p>
+            <p>Pending work: {student.pending}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            ["Aptitude", student.aptitude],
+            ["Coding", student.coding],
+            ["Communication", student.communication],
+            ["Interview", student.interview],
+            ["Overall readiness", student.readiness],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border bg-white p-3">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-xl font-bold">{value}%</p>
+                <ReadinessPill value={Number(value)} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Move to section</label>
+          <select
+            className="h-10 w-full rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm"
+            value={student.section}
+            onChange={(event) => onMoveStudent(student.id, event.target.value)}
+          >
+            {sections.map((section) => (
+              <option key={section.id}>{section.name}</option>
+            ))}
+          </select>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StudentsAdmin({
+  sections,
+  students,
+  selectedStudent,
+  onSelectStudent,
+  onMoveStudent,
+}: {
+  sections: SectionRow[];
+  students: AdminStudentRow[];
+  selectedStudent: AdminStudentRow;
+  onSelectStudent: (studentId: string) => void;
+  onMoveStudent: (studentId: string, sectionName: string) => void;
+}) {
+  const [sectionFilter, setSectionFilter] = useState(sections[0]?.name ?? "");
+  const filteredStudents = students.filter((student) => student.section === sectionFilter);
+
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Students"
+        title="Students are managed through sections."
+        description="Filter by section, open a student profile, review progress, and move students between sections."
+        action={
+          <Button>
+            <UserPlus className="h-4 w-4" />
+            Add Student
+          </Button>
+        }
+      />
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_390px]">
+        <Card>
+          <CardHeader className="gap-3 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <CardTitle>Students By Section</CardTitle>
+              <CardDescription>{filteredStudents.length} students in selected section.</CardDescription>
+            </div>
+            <select
+              className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm md:w-72"
+              value={sectionFilter}
+              onChange={(event) => setSectionFilter(event.target.value)}
+            >
+              {sections.map((section) => (
+                <option key={section.id}>{section.name}</option>
+              ))}
+            </select>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {filteredStudents.map((student) => (
+              <button
+                key={student.id}
+                className={`grid w-full gap-3 rounded-lg border p-3 text-left md:grid-cols-[minmax(0,1fr)_180px_120px] md:items-center ${
+                  selectedStudent.id === student.id ? "border-primary bg-primary/5" : "bg-white"
+                }`}
+                onClick={() => onSelectStudent(student.id)}
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold">{student.name}</p>
+                  <p className="text-sm text-muted-foreground">{student.rollNo} · {student.groups}</p>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs text-muted-foreground">Readiness {student.readiness}%</p>
+                  <Progress value={student.readiness} />
+                </div>
+                <Badge variant={student.pending > 4 ? "danger" : "outline"}>{student.pending} pending</Badge>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+        <StudentDetail student={selectedStudent} sections={sections} onMoveStudent={onMoveStudent} />
+      </section>
+    </>
+  );
+}
+
+function SectionsAdmin({
+  sections,
+  students,
+  selectedSection,
+  selectedStudent,
+  onCreateSection,
+  onSelectSection,
+  onSelectStudent,
+  onMoveStudent,
+}: {
+  sections: SectionRow[];
+  students: AdminStudentRow[];
+  selectedSection: SectionRow;
+  selectedStudent: AdminStudentRow;
+  onCreateSection: (section: SectionRow) => void;
+  onSelectSection: (sectionId: string) => void;
+  onSelectStudent: (studentId: string) => void;
+  onMoveStudent: (studentId: string, sectionName: string) => void;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const sectionStudents = students.filter((student) => student.section === selectedSection.name);
+
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Sections"
+        title="Create sections and manage students inside each section."
+        description="Open a section to see all students belonging to it, then open student progress or move students between sections."
+        action={
+          <Button onClick={() => setShowForm((value) => !value)}>
+            <Plus className="h-4 w-4" />
+            New Section
+          </Button>
+        }
+      />
+      {showForm ? <CreateSectionForm onCreateSection={onCreateSection} /> : null}
+      <section className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)_360px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Sections</CardTitle>
+            <CardDescription>Purpose and student count.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                className={`w-full rounded-lg border p-3 text-left ${selectedSection.id === section.id ? "border-primary bg-primary/5" : "bg-white"}`}
+                onClick={() => onSelectSection(section.id)}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold">{section.name}</p>
+                  <Badge variant={section.status === "Active" ? "secondary" : "warning"}>{section.status}</Badge>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{section.description}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant="outline">{students.filter((student) => student.section === section.name).length} students</Badge>
+                  <Badge variant="outline">{section.code}</Badge>
+                  <Badge variant="outline">{section.coordinator}</Badge>
+                </div>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{selectedSection.name}</CardTitle>
+            <CardDescription>{selectedSection.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <InfoTile label="Department" value={selectedSection.department} />
+              <InfoTile label="Batch" value={selectedSection.batch} />
+              <InfoTile label="Students" value={String(sectionStudents.length)} />
+            </div>
+            {sectionStudents.length > 0 ? sectionStudents.map((student) => (
+              <button
+                key={student.id}
+                className={`grid w-full gap-3 rounded-lg border p-3 text-left md:grid-cols-[minmax(0,1fr)_120px_auto] md:items-center ${
+                  selectedStudent.id === student.id ? "border-primary bg-primary/5" : "bg-white"
+                }`}
+                onClick={() => onSelectStudent(student.id)}
+              >
+                <div>
+                  <p className="font-semibold">{student.name}</p>
+                  <p className="text-sm text-muted-foreground">{student.rollNo} · {student.email}</p>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs text-muted-foreground">{student.readiness}% ready</p>
+                  <ReadinessPill value={student.readiness} />
+                </div>
+                <Eye className="h-4 w-4 text-primary" />
+              </button>
+            )) : (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                No students in this section yet. Move students here from the student detail panel.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <div className="2xl:block lg:col-span-2 2xl:col-span-1">
+          <StudentDetail student={selectedStudent} sections={sections} onMoveStudent={onMoveStudent} />
+        </div>
+      </section>
+    </>
+  );
+}
+
+function CreateSectionForm({ onCreateSection }: { onCreateSection: (section: SectionRow) => void }) {
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [department, setDepartment] = useState("Computer Science");
+  const [batch, setBatch] = useState("2027");
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Create Section</CardTitle>
+        <CardDescription>Define department, batch, academic year, code, and coordinator ownership.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form
+          className="grid gap-3 md:grid-cols-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const sectionName = name.trim() || "New Section";
+            onCreateSection({
+              id: crypto.randomUUID(),
+              name: sectionName,
+              code: code.trim() || sectionName.toUpperCase().replaceAll(" ", "-"),
+              department,
+              batch,
+              academicYear: "2026-2027",
+              students: 0,
+              coordinator: "Unassigned",
+              readiness: 0,
+              status: "Active",
+              description: "Newly created organization section.",
+            });
+            setName("");
+            setCode("");
+          }}
+        >
+          <Input placeholder="Section name" value={name} onChange={(event) => setName(event.target.value)} />
+          <Input placeholder="Section code" value={code} onChange={(event) => setCode(event.target.value)} />
+          <Input placeholder="Department" value={department} onChange={(event) => setDepartment(event.target.value)} />
+          <Input placeholder="Batch" value={batch} onChange={(event) => setBatch(event.target.value)} />
+          <Button className="md:col-span-4" type="submit">Create Section</Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CoordinatorsAdmin({
+  coordinators,
+  roles,
+  sections,
+  onAddCoordinator,
+  onAddRole,
+}: {
+  coordinators: CoordinatorRow[];
+  roles: CoordinatorRole[];
+  sections: SectionRow[];
+  onAddCoordinator: (coordinator: CoordinatorRow) => void;
+  onAddRole: (role: CoordinatorRole) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState(roles[0]?.name ?? "");
+  const [section, setSection] = useState(sections[0]?.name ?? "");
+  const [roleName, setRoleName] = useState("");
+  const [permissions, setPermissions] = useState("Manage students, Create tasks");
+
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Coordinators"
+        title="Add coordinators and create permission roles."
+        description="Coordinator access is role-based, and coordinators can be assigned to sections and workflows."
+      />
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_430px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Coordinator</CardTitle>
+            <CardDescription>Form for creating a placement coordinator account.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form
+              className="grid gap-3 md:grid-cols-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                onAddCoordinator({
+                  id: crypto.randomUUID(),
+                  name: name || "New Coordinator",
+                  email: email || "coordinator@example.edu",
+                  phone: "+91 90000 00000",
+                  role,
+                  sections: [section],
+                  status: "Active",
+                });
+                setName("");
+                setEmail("");
+              }}
+            >
+              <Input placeholder="Coordinator name" value={name} onChange={(event) => setName(event.target.value)} />
+              <Input placeholder="Email address" value={email} onChange={(event) => setEmail(event.target.value)} />
+              <Input placeholder="Phone number" />
+              <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={role} onChange={(event) => setRole(event.target.value)}>
+                {roles.map((item) => <option key={item.id}>{item.name}</option>)}
+              </select>
+              <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={section} onChange={(event) => setSection(event.target.value)}>
+                {sections.map((item) => <option key={item.id}>{item.name}</option>)}
+              </select>
+              <Button type="submit">
+                <UserPlus className="h-4 w-4" />
+                Add Coordinator
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Role</CardTitle>
+            <CardDescription>Define coordinator permissions.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Input placeholder="Role name" value={roleName} onChange={(event) => setRoleName(event.target.value)} />
+            <textarea className="min-h-24 w-full rounded-md border bg-white px-3 py-2 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={permissions} onChange={(event) => setPermissions(event.target.value)} />
+            <Button
+              className="w-full"
+              onClick={() => {
+                onAddRole({
+                  id: crypto.randomUUID(),
+                  name: roleName || "Custom Coordinator Role",
+                  permissions: permissions.split(",").map((item) => item.trim()).filter(Boolean),
+                });
+                setRoleName("");
+              }}
+            >
+              Create Role
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+      <section className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Coordinator List</CardTitle>
+            <CardDescription>Assigned sections and roles.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {coordinators.map((coordinator) => (
+              <div key={coordinator.id} className="rounded-lg border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-semibold">{coordinator.name}</p>
+                  <Badge variant="secondary">{coordinator.role}</Badge>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{coordinator.email} · {coordinator.sections.join(", ")}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Roles</CardTitle>
+            <CardDescription>Coordinator role-based access.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {roles.map((item) => (
+              <div key={item.id} className="rounded-lg border p-3">
+                <p className="font-semibold">{item.name}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {item.permissions.map((permission) => <Badge key={permission} variant="outline">{permission}</Badge>)}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+    </>
+  );
+}
+
+function TasksAdmin({ tasks, sections, onAddTask }: { tasks: AdminTask[]; sections: SectionRow[]; onAddTask: (task: AdminTask) => void }) {
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState("Daily Task");
+  const [assignedTo, setAssignedTo] = useState(sections[0]?.name ?? "");
+  const previewTitle = title || "Untitled placement task";
+
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Tasks"
+        title="Create tasks and preview how students will receive them."
+        description="Assign daily tasks, homework, reflections, or coding work to sections, groups, or selected students."
+      />
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Task</CardTitle>
+            <CardDescription>Task setup and assignment.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Input placeholder="Task title" value={title} onChange={(event) => setTitle(event.target.value)} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={type} onChange={(event) => setType(event.target.value)}>
+                <option>Daily Task</option>
+                <option>Placement Homework</option>
+                <option>Coding Practice</option>
+                <option>Resume Review</option>
+              </select>
+              <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)}>
+                {sections.map((section) => <option key={section.id}>{section.name}</option>)}
+              </select>
+            </div>
+            <textarea className="min-h-28 w-full rounded-md border bg-white px-3 py-2 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" placeholder="Instructions, attachments, expected outcome, evaluation notes" />
+            <Button className="w-full" onClick={() => onAddTask({ id: crypto.randomUUID(), title: previewTitle, type, assignedTo, due: "Tomorrow, 5:00 PM", status: "Draft", submissions: 0 })}>
+              Create Task
+            </Button>
+          </CardContent>
+        </Card>
+        <StudentTaskPreview title={previewTitle} type={type} assignedTo={assignedTo} />
+      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Task Board</CardTitle>
+          <CardDescription>Created tasks and submission progress.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {tasks.map((task) => (
+            <div key={task.id} className="grid gap-3 rounded-lg border p-3 md:grid-cols-[minmax(0,1fr)_140px_120px] md:items-center">
+              <div>
+                <p className="font-semibold">{task.title}</p>
+                <p className="text-sm text-muted-foreground">{task.type} · {task.assignedTo} · {task.due}</p>
+              </div>
+              <Badge variant="outline">{task.status}</Badge>
+              <p className="text-sm text-muted-foreground">{task.submissions} submissions</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function StudentTaskPreview({ title, type, assignedTo }: { title: string; type: string; assignedTo: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Student Preview</CardTitle>
+        <CardDescription>How this task appears to assigned students.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border bg-primary/5 p-4">
+          <Badge>{type}</Badge>
+          <h3 className="mt-3 text-lg font-bold">{title}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Assigned to {assignedTo}. Due tomorrow at 5:00 PM.</p>
+        </div>
+        <div className="rounded-lg border p-3 text-sm text-muted-foreground">
+          Students will see instructions, attachments, comments, upload controls, and coordinator feedback after review.
+        </div>
+        <Button className="w-full" variant="outline">Open Student View Preview</Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AssessmentsAdmin({ assessments, sections, onAddAssessment }: { assessments: AdminAssessment[]; sections: SectionRow[]; onAddAssessment: (assessment: AdminAssessment) => void }) {
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState("Written Test");
+  const [assignedTo, setAssignedTo] = useState(sections[0]?.name ?? "");
+  const [instructions, setInstructions] = useState("Answer all sections. Follow timing and submission rules.");
+  const [rubric, setRubric] = useState("Aptitude 40%, Technical 40%, Communication 20%");
+  const [questionType, setQuestionType] = useState("MCQ");
+  const [questionText, setQuestionText] = useState("");
+  const [questionOptions, setQuestionOptions] = useState("Option A, Option B, Option C, Option D");
+  const [questionMarks, setQuestionMarks] = useState("5");
+  const [questions, setQuestions] = useState([
+    {
+      id: "question-1",
+      type: "MCQ",
+      text: "Choose the most efficient data structure for balanced parentheses.",
+      options: ["Queue", "Stack", "Hash Map", "Tree"],
+      marks: "5",
+    },
+  ]);
+
+  const previewTitle = title || "Untitled assessment";
+
+  function addQuestion() {
+    const text = questionText.trim();
+    if (!text) return;
+    setQuestions((items) => [
+      ...items,
+      {
+        id: crypto.randomUUID(),
+        type: questionType,
+        text,
+        options: questionOptions.split(",").map((option) => option.trim()).filter(Boolean),
+        marks: questionMarks,
+      },
+    ]);
+    setQuestionText("");
+  }
+
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Assessments"
+        title="Create assessments and preview the student experience before publishing."
+        description="Build written tests, mock interviews, group discussions, coding rounds, and company-specific assessments."
+      />
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Assessment</CardTitle>
+            <CardDescription>Type, target audience, rules, duration, and rubric.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Input placeholder="Assessment title" value={title} onChange={(event) => setTitle(event.target.value)} />
+            <div className="grid gap-3 sm:grid-cols-3">
+              <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={type} onChange={(event) => setType(event.target.value)}>
+                <option>Written Test</option>
+                <option>Mock Interview</option>
+                <option>Group Discussion</option>
+                <option>Coding Round</option>
+              </select>
+              <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)}>
+                {sections.map((section) => <option key={section.id}>{section.name}</option>)}
+                <option>Aptitude Group</option>
+                <option>Interview Group</option>
+              </select>
+              <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm">
+                <option>60 min</option>
+                <option>30 min</option>
+                <option>45 min</option>
+                <option>Panel slot</option>
+              </select>
+            </div>
+            <textarea className="min-h-28 w-full rounded-md border bg-white px-3 py-2 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={instructions} onChange={(event) => setInstructions(event.target.value)} />
+            <Input value={rubric} onChange={(event) => setRubric(event.target.value)} />
+            <div className="rounded-lg border bg-background p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold">Question Builder</p>
+                <Badge variant="outline">{questions.length} questions</Badge>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-[160px_120px_minmax(0,1fr)]">
+                <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" value={questionType} onChange={(event) => setQuestionType(event.target.value)}>
+                  <option>MCQ</option>
+                  <option>Short Answer</option>
+                  <option>Code Question</option>
+                  <option>Interview Prompt</option>
+                  <option>Group Discussion Topic</option>
+                </select>
+                <Input placeholder="Marks" value={questionMarks} onChange={(event) => setQuestionMarks(event.target.value)} />
+                <Input placeholder="Question text" value={questionText} onChange={(event) => setQuestionText(event.target.value)} />
+              </div>
+              {questionType === "MCQ" ? (
+                <Input className="mt-3" placeholder="Comma-separated options" value={questionOptions} onChange={(event) => setQuestionOptions(event.target.value)} />
+              ) : null}
+              <Button className="mt-3 w-full" variant="outline" onClick={addQuestion}>
+                <Plus className="h-4 w-4" />
+                Add Question
+              </Button>
+              <div className="mt-3 space-y-2">
+                {questions.map((question, index) => (
+                  <div key={question.id} className="rounded-md border bg-white p-3 text-sm">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">Q{index + 1}</Badge>
+                      <Badge variant="warning">{question.type}</Badge>
+                      <span className="text-muted-foreground">{question.marks} marks</span>
+                    </div>
+                    <p className="mt-2 font-medium">{question.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => onAddAssessment({ id: crypto.randomUUID(), title: previewTitle, type, assignedTo, duration: "60 min", instructions, rubric, status: `Draft · ${questions.length} questions` })}>
+              Create Assessment
+            </Button>
+          </CardContent>
+        </Card>
+        <AssessmentPreview title={previewTitle} type={type} assignedTo={assignedTo} instructions={instructions} rubric={rubric} questions={questions} />
+      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Assessment Board</CardTitle>
+          <CardDescription>Created assessments and publish state.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {assessments.map((assessment) => (
+            <div key={assessment.id} className="rounded-lg border p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold">{assessment.title}</p>
+                <Badge variant="outline">{assessment.status}</Badge>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">{assessment.type} · {assessment.assignedTo} · {assessment.duration}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function AssessmentPreview({
+  title,
+  type,
+  assignedTo,
+  instructions,
+  rubric,
+  questions,
+}: {
+  title: string;
+  type: string;
+  assignedTo: string;
+  instructions: string;
+  rubric: string;
+  questions: Array<{ id: string; type: string; text: string; options: string[]; marks: string }>;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Student Experience Preview</CardTitle>
+        <CardDescription>Review before students see it.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border bg-primary/5 p-4">
+          <Badge>{type}</Badge>
+          <h3 className="mt-3 text-lg font-bold">{title}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{assignedTo} · 60 min · Starts after publish</p>
+        </div>
+        <div className="rounded-lg border p-3">
+          <p className="text-sm font-semibold">Instructions</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">{instructions}</p>
+        </div>
+        <div className="rounded-lg border p-3">
+          <p className="text-sm font-semibold">Rubric</p>
+          <p className="mt-2 text-sm text-muted-foreground">{rubric}</p>
+        </div>
+        <div className="rounded-lg border p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold">Question Preview</p>
+            <Badge variant="outline">{questions.length} total</Badge>
+          </div>
+          <div className="mt-3 space-y-3">
+            {questions.slice(0, 2).map((question, index) => (
+              <div key={question.id} className="rounded-md bg-background p-3">
+                <p className="text-sm font-medium">Q{index + 1}. {question.text}</p>
+                {question.options.length ? (
+                  <div className="mt-2 grid gap-2">
+                    {question.options.slice(0, 4).map((option) => (
+                      <div key={option} className="rounded border bg-white px-3 py-2 text-sm text-muted-foreground">{option}</div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 rounded border bg-white px-3 py-5 text-sm text-muted-foreground">Student response area</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button variant="outline">Preview Student Start Screen</Button>
+          <Button>Publish Assessment</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AnnouncementsAdmin({ onAction, sections }: { onAction: (message: string) => void; sections: SectionRow[] }) {
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Announcements"
+        title="Publish placement updates to sections and groups."
+        description="Send drive updates, schedule changes, preparation instructions, and deadline reminders."
+        action={
+          <Button onClick={() => onAction("Announcement published.")}>
+            <Send className="h-4 w-4" />
+            Publish
+          </Button>
+        }
+      />
+      <Card>
+        <CardContent className="space-y-3 p-4 sm:p-5">
+          <Input placeholder="Announcement title" />
+          <textarea className="min-h-36 w-full rounded-md border bg-white px-3 py-2 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm" placeholder="Write announcement content" />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm">
+              {sections.map((section) => <option key={section.id}>{section.name}</option>)}
+              <option>All Students</option>
+              <option>Coding Group</option>
+            </select>
+            <select className="h-10 rounded-md border bg-white px-3 text-base outline-none focus:ring-2 focus:ring-ring sm:text-sm">
+              <option>Normal</option>
+              <option>Important</option>
+              <option>Urgent</option>
+            </select>
+            <Button onClick={() => onAction("Announcement preview opened.")}>Preview</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function ReportsAdmin({ sections, students }: { sections: SectionRow[]; students: AdminStudentRow[] }) {
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Reports"
+        title="Organization and section performance reporting."
+        description="Compare readiness, participation, assessment completion, coordinator activity, and student outcomes."
+        action={
+          <Button variant="outline">
+            <BarChart3 className="h-4 w-4" />
+            Export Report
+          </Button>
+        }
+      />
+      <section className="grid gap-4 md:grid-cols-3">
+        {sections.slice(0, 3).map((section) => (
+          <Card key={section.id}>
+            <CardHeader>
+              <CardTitle>{section.name}</CardTitle>
+              <CardDescription>{students.filter((student) => student.section === section.name).length} tracked students</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Progress value={section.readiness} />
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+    </>
+  );
+}
+
+function GroupsAdmin({ onAction }: { onAction: (message: string) => void }) {
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Groups"
+        title="Create cross-section preparation groups."
+        description="Groups can include students from multiple sections for aptitude, coding, interview, or company-specific support."
+        action={<Button onClick={() => onAction("Group created.")}><Plus className="h-4 w-4" />New Group</Button>}
+      />
+      <section className="grid gap-4 md:grid-cols-3">
+        {["Advanced Coding Group", "Aptitude Improvement Group", "Interview Preparation Group"].map((group) => (
+          <Card key={group}>
+            <CardHeader>
+              <CardTitle>{group}</CardTitle>
+              <CardDescription>Cross-section student group</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Badge variant="outline">Active</Badge>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+    </>
+  );
+}
+
+function SettingsAdmin({ onAction }: { onAction: (message: string) => void }) {
+  const [orgName, setOrgName] = useState("ABC Institute of Technology");
+  const [shortName, setShortName] = useState("ABC Institute");
+  const [academicYear, setAcademicYear] = useState("2026-2027");
+  const [contactEmail, setContactEmail] = useState("admin@abc.edu");
+  const [defaultDepartment, setDefaultDepartment] = useState("Placement Department");
+  const [studentPortalTitle, setStudentPortalTitle] = useState("ABC Placement Readiness Portal");
+  const [supportContact, setSupportContact] = useState("placements@abc.edu");
+  const [brandColor, setBrandColor] = useState("#153E9F");
+
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Settings"
+        title="Organization profile and student portal defaults."
+        description="The uploaded organization profile becomes the default branding, contact, academic year, and support information shown to students."
+      />
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Organization Profile</CardTitle>
+            <CardDescription>These values become defaults for student accounts under this organization.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Input value={orgName} onChange={(event) => setOrgName(event.target.value)} />
+              <Input value={shortName} onChange={(event) => setShortName(event.target.value)} />
+              <Input value={academicYear} onChange={(event) => setAcademicYear(event.target.value)} />
+              <Input value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} />
+              <Input value={defaultDepartment} onChange={(event) => setDefaultDepartment(event.target.value)} />
+              <Input value={supportContact} onChange={(event) => setSupportContact(event.target.value)} />
+              <Input className="md:col-span-2" value={studentPortalTitle} onChange={(event) => setStudentPortalTitle(event.target.value)} />
+            </div>
+            <div className="grid gap-3 md:grid-cols-[140px_minmax(0,1fr)]">
+              <div className="rounded-lg border bg-background p-4 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg text-xl font-black text-white" style={{ backgroundColor: brandColor }}>
+                  {shortName.slice(0, 2).toUpperCase()}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">Logo preview</p>
+              </div>
+              <div className="space-y-3">
+                <Input placeholder="Logo file name or URL" />
+                <Input value={brandColor} onChange={(event) => setBrandColor(event.target.value)} />
+                <Button variant="outline" onClick={() => onAction("Organization logo upload selected.")}>
+                  Upload Organization Logo
+                </Button>
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => onAction("Organization profile saved and applied as student defaults.")}>
+              Save Organization Defaults
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Student Default Preview</CardTitle>
+            <CardDescription>What new students will inherit after login.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border bg-primary/5 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg text-sm font-black text-white" style={{ backgroundColor: brandColor }}>
+                  {shortName.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-bold">{studentPortalTitle}</p>
+                  <p className="text-sm text-muted-foreground">{shortName} · {academicYear}</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-3 text-sm">
+              <InfoTile label="Default organization" value={orgName} />
+              <InfoTile label="Default department owner" value={defaultDepartment} />
+              <InfoTile label="Student support" value={supportContact} />
+              <InfoTile label="Admin contact" value={contactEmail} />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    </>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border bg-background p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function ReadinessPill({ value }: { value: number }) {
+  const tone = value >= 85 ? "bg-secondary/15 text-secondary" : value >= 70 ? "bg-accent/20 text-foreground" : "bg-destructive/10 text-destructive";
+
+  return <span className={`inline-flex rounded-md px-2 py-1 text-xs font-bold ${tone}`}>{value >= 85 ? "High" : value >= 70 ? "Medium" : "Low"}</span>;
+}

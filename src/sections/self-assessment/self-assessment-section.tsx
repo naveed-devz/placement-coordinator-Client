@@ -15,12 +15,14 @@ export function SelfAssessmentSection({ onLaunch }: { onLaunch: (title: string) 
   const [invites, setInvites] = useState(["Vikram Singh", "Meera Nair"]);
   const [createdSessions, setCreatedSessions] = useState([
     {
+      id: "session-1",
       title: "DSA peer challenge",
       mode: "Written Test",
       participants: 4,
       time: "Today, 6:00 PM",
     },
   ]);
+  const selectedAssessment = selfAssessments.find((item) => item.title === selectedTemplate) ?? selfAssessments[0];
 
   function addInvite() {
     const name = inviteInput.trim();
@@ -30,15 +32,18 @@ export function SelfAssessmentSection({ onLaunch }: { onLaunch: (title: string) 
   }
 
   function createPracticeSession() {
-    setCreatedSessions((sessions) => [
-      {
-        title: selectedTemplate,
-        mode: assessmentMode,
-        participants: invites.length + 1,
-        time: "Created now",
-      },
-      ...sessions,
-    ]);
+    setCreatedSessions((sessions) =>
+      [
+        {
+          id: crypto.randomUUID(),
+          title: selectedTemplate,
+          mode: assessmentMode,
+          participants: invites.length + 1,
+          time: "Created now",
+        },
+        ...sessions,
+      ].slice(0, 5),
+    );
     onLaunch(`${assessmentMode} session created`);
   }
 
@@ -55,7 +60,7 @@ export function SelfAssessmentSection({ onLaunch }: { onLaunch: (title: string) 
           </Button>
         }
       />
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Card>
           <CardHeader>
             <CardTitle>Create Practice Assessment</CardTitle>
@@ -92,8 +97,8 @@ export function SelfAssessmentSection({ onLaunch }: { onLaunch: (title: string) 
 
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                { label: "Questions", value: "25", icon: MessageSquareText },
-                { label: "Duration", value: "30 min", icon: CalendarDays },
+                { label: "Questions", value: String(selectedAssessment.questions), icon: MessageSquareText },
+                { label: "Duration", value: selectedAssessment.duration, icon: CalendarDays },
                 { label: "Participants", value: String(invites.length + 1), icon: Users },
               ].map((item) => (
                 <div key={item.label} className="rounded-lg border bg-background p-3">
@@ -128,14 +133,14 @@ export function SelfAssessmentSection({ onLaunch }: { onLaunch: (title: string) 
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="xl:max-h-[430px] xl:overflow-hidden">
           <CardHeader>
             <CardTitle>Created Sessions</CardTitle>
-            <CardDescription>Peer practice rooms.</CardDescription>
+            <CardDescription>Latest peer practice rooms.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="max-h-[330px] space-y-3 overflow-y-auto">
             {createdSessions.map((session) => (
-              <div key={`${session.title}-${session.time}`} className="rounded-lg border p-3">
+              <div key={session.id} className="rounded-lg border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-semibold">{session.title}</p>
                   <Badge variant="secondary">{session.mode}</Badge>

@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Building2, Eye, EyeOff, GraduationCap } from "lucide-react";
 import { BrandLogo } from "@/components/common/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import type { UserRole } from "@/types/auth";
 
-export function LoginScreen({ onLogin }: { onLogin: () => void }) {
+export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) {
   const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<UserRole>("student");
 
   return (
     <main className="student-shell min-h-screen">
@@ -14,13 +17,13 @@ export function LoginScreen({ onLogin }: { onLogin: () => void }) {
         <section className="space-y-7">
           <BrandLogo />
           <div className="max-w-xl space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-normal text-secondary">Student Placement Portal</p>
+            <p className="text-sm font-semibold uppercase tracking-normal text-secondary">Placement Management Portal</p>
             <h1 className="text-3xl font-bold leading-tight text-foreground sm:text-5xl">
-              Daily placement prep, all in one focused workspace.
+              Student preparation and organization control in one workspace.
             </h1>
             <p className="text-base leading-7 text-muted-foreground">
-              Track tasks, homework, assessments, scores, feedback, announcements, and preparation progress with
-              student data.
+              Students track preparation work, while organization admins manage sections, coordinators, assessments,
+              announcements, and performance.
             </p>
           </div>
           <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
@@ -35,16 +38,35 @@ export function LoginScreen({ onLogin }: { onLogin: () => void }) {
         <Card className="mx-auto w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>Enter any username/email and password to view the student dashboard.</CardDescription>
+            <CardDescription>Choose Student or Admin, then enter any credentials to continue.</CardDescription>
           </CardHeader>
           <CardContent>
             <form
               className="space-y-5"
               onSubmit={(event) => {
                 event.preventDefault();
-                onLogin();
+                onLogin(role);
               }}
             >
+              <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1">
+                {[
+                  { label: "Student", value: "student" as const, icon: GraduationCap },
+                  { label: "Admin", value: "admin" as const, icon: Building2 },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    className={cn(
+                      "flex h-11 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-colors",
+                      role === item.value ? "bg-white text-primary shadow-sm" : "text-muted-foreground",
+                    )}
+                    onClick={() => setRole(item.value)}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </button>
+                ))}
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="identity">
                   Username or email

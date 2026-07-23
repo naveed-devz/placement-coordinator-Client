@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Code2, Play, RotateCcw, Send, TerminalSquare } from "lucide-react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { codingPractice } from "@/data/student";
 
 export function CodingPracticeSection({ onAction }: { onAction: (message: string) => void }) {
@@ -73,21 +73,23 @@ export function CodingPracticeSection({ onAction }: { onAction: (message: string
             {codingPractice.map((problem) => (
               <button
                 key={problem.title}
-                className={`w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted ${
+                className={`grid w-full gap-3 rounded-lg border p-3 text-left transition-colors sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${
                   selectedProblem.title === problem.title ? "border-primary bg-primary/5" : "bg-white"
                 }`}
                 onClick={() => setSelectedProblem(problem)}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold">{problem.title}</p>
-                  <Badge variant={problem.status === "Solved" ? "secondary" : problem.difficulty === "Hard" ? "danger" : "outline"}>
-                    {problem.difficulty}
-                  </Badge>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="min-w-0 font-semibold">{problem.title}</p>
+                    <Badge variant={problem.status === "Solved" ? "secondary" : problem.difficulty === "Hard" ? "danger" : "outline"}>
+                      {problem.difficulty}
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {problem.topic} · {problem.platform} · {problem.attempts} attempts
+                  </p>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {problem.topic} · {problem.platform} · {problem.attempts} attempts
-                </p>
-                <Progress className="mt-3" value={problem.acceptance} />
+                <DonutProgress value={problem.acceptance} size="sm" className="justify-self-start sm:justify-self-end" />
               </button>
             ))}
           </CardContent>

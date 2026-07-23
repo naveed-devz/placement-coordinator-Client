@@ -62,8 +62,9 @@ export function StudentShell({
           {navItems.map((item) => (
             <button
               key={item.label}
+              title={sidebarCollapsed ? item.label : undefined}
               className={cn(
-                "flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-medium transition-colors",
+                "group relative flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-medium transition-colors",
                 sidebarCollapsed && "lg:justify-center lg:px-0",
                 activeNav === item.label ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted",
               )}
@@ -74,6 +75,14 @@ export function StudentShell({
             >
               <item.icon className="h-4 w-4 shrink-0" />
               <span className={cn("truncate", sidebarCollapsed && "lg:hidden")}>{item.label}</span>
+              <span
+                className={cn(
+                  "pointer-events-none absolute left-[calc(100%+0.75rem)] top-1/2 z-50 hidden -translate-y-1/2 whitespace-nowrap rounded-md border bg-white px-3 py-2 text-sm font-medium text-foreground opacity-0 shadow-lg transition-opacity",
+                  sidebarCollapsed && "lg:block lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100",
+                )}
+              >
+                {item.label}
+              </span>
             </button>
           ))}
         </nav>

@@ -10,12 +10,12 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   adminAssessments,
   adminCoordinators,
@@ -173,15 +173,17 @@ function AdminDashboard({
           </CardHeader>
           <CardContent className="space-y-3">
             {sections.map((section) => (
-              <div key={section.id} className="rounded-lg border p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold">{section.name}</p>
-                  <Badge variant={section.status === "Active" ? "secondary" : "warning"}>{section.status}</Badge>
+              <div key={section.id} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{section.name}</p>
+                    <Badge variant={section.status === "Active" ? "secondary" : "warning"}>{section.status}</Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {students.filter((student) => student.section === section.name).length} students · {section.coordinator}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {students.filter((student) => student.section === section.name).length} students · {section.coordinator}
-                </p>
-                <Progress className="mt-3" value={section.readiness} />
+                <DonutProgress value={section.readiness} size="sm" className="justify-self-start sm:justify-self-end" />
               </div>
             ))}
           </CardContent>
@@ -339,10 +341,7 @@ function StudentsAdmin({
                   <p className="font-semibold">{student.name}</p>
                   <p className="text-sm text-muted-foreground">{student.rollNo} · {student.groups}</p>
                 </div>
-                <div>
-                  <p className="mb-2 text-xs text-muted-foreground">Readiness {student.readiness}%</p>
-                  <Progress value={student.readiness} />
-                </div>
+                <DonutProgress value={student.readiness} label="Readiness" size="sm" />
                 <Badge variant={student.pending > 4 ? "danger" : "outline"}>{student.pending} pending</Badge>
               </button>
             ))}
@@ -984,7 +983,7 @@ function ReportsAdmin({ sections, students }: { sections: SectionRow[]; students
               <CardDescription>{students.filter((student) => student.section === section.name).length} tracked students</CardDescription>
             </CardHeader>
             <CardContent>
-              <Progress value={section.readiness} />
+              <DonutProgress value={section.readiness} label="Readiness" size="sm" />
             </CardContent>
           </Card>
         ))}

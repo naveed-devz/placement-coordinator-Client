@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Check, ClipboardCheck, Video } from "lucide-react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import type { AssessmentItem } from "@/types/student";
 
 export function AssessmentsSection({
@@ -121,11 +121,7 @@ export function AssessmentsSection({
             <CardDescription>Java fundamentals mock</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="text-center">
-              <p className="text-5xl font-bold">88%</p>
-              <p className="mt-2 text-sm text-muted-foreground">Rank 12 of 148 students</p>
-            </div>
-            <Progress value={88} />
+            <DonutProgress value={88} label="Latest score" caption="Rank 12 of 148 students" size="lg" className="justify-center" />
             <Button className="w-full" variant="outline">
               Review Answers
             </Button>

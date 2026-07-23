@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { BarChart3, Check, CreditCard, LifeBuoy, Plus, Settings, ShieldCheck, X } from "lucide-react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { auditLogs, organizationRequests, organizations, platformMetrics, platformUsers, supportTickets } from "@/data/super-admin";
 import type { OrganizationRequest, OrganizationRow, SuperAdminNavLabel } from "@/types/super-admin";
 
@@ -80,15 +80,17 @@ function SuperAdminDashboard({
           </CardHeader>
           <CardContent className="space-y-3">
             {organizations.map((org) => (
-              <div key={org.id} className="rounded-lg border p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold">{org.name}</p>
-                  <Badge variant={org.status === "Active" ? "secondary" : org.status === "Suspended" ? "danger" : "warning"}>{org.status}</Badge>
+              <div key={org.id} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{org.name}</p>
+                    <Badge variant={org.status === "Active" ? "secondary" : org.status === "Suspended" ? "danger" : "warning"}>{org.status}</Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {org.plan} · {org.students} students · {org.region}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {org.plan} · {org.students} students · {org.region}
-                </p>
-                <Progress className="mt-3" value={org.usage} />
+                <DonutProgress value={org.usage} size="sm" className="justify-self-start sm:justify-self-end" />
               </div>
             ))}
           </CardContent>
@@ -177,10 +179,7 @@ function OrganizationsPage({
               <InfoTile label="Students" value={String(selectedOrg.students)} />
               <InfoTile label="Coordinators" value={String(selectedOrg.coordinators)} />
             </div>
-            <div>
-              <p className="mb-2 text-sm text-muted-foreground">Usage {selectedOrg.usage}%</p>
-              <Progress value={selectedOrg.usage} />
-            </div>
+            <DonutProgress value={selectedOrg.usage} label="Usage" caption="Current tenant resource usage" />
             <div className="grid gap-2 sm:grid-cols-2">
               <Button variant="outline" onClick={() => onUpdateStatus(selectedOrg.id, "Active")}>Activate</Button>
               <Button variant="outline" onClick={() => onUpdateStatus(selectedOrg.id, "Suspended")}>Suspend</Button>
@@ -297,12 +296,8 @@ function AnalyticsPage({ organizations }: { organizations: OrganizationRow[] }) 
           </CardHeader>
           <CardContent className="space-y-3">
             {organizations.map((org) => (
-              <div key={org.id} className="space-y-2 rounded-lg border p-3">
-                <div className="flex justify-between gap-3 text-sm">
-                  <span className="font-medium">{org.name}</span>
-                  <span className="text-muted-foreground">{org.usage}%</span>
-                </div>
-                <Progress value={org.usage} />
+              <div key={org.id} className="rounded-lg border p-3">
+                <DonutProgress value={org.usage} label={org.name} caption={`${org.students} students`} size="sm" />
               </div>
             ))}
           </CardContent>

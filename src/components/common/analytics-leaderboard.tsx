@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { leaderboardRows, organizationAnalytics, sectionPerformance } from "@/data/student";
 import { cn } from "@/lib/utils";
 
@@ -42,21 +42,13 @@ export function AnalyticsAndLeaderboard() {
               </div>
             ))}
           </div>
-          <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2">
             {sectionPerformance.map((item) => (
-              <div key={item.section} className="grid gap-2 rounded-lg border p-3 sm:grid-cols-[70px_minmax(0,1fr)] sm:items-center">
+              <div key={item.section} className="rounded-lg border p-3">
                 <p className="text-sm font-semibold">{item.section}</p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-20 text-xs text-muted-foreground">Readiness</span>
-                    <Progress value={item.readiness} />
-                    <span className="w-9 text-xs font-medium">{item.readiness}%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-20 text-xs text-muted-foreground">Completion</span>
-                    <Progress value={item.completion} />
-                    <span className="w-9 text-xs font-medium">{item.completion}%</span>
-                  </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <DonutProgress value={item.readiness} label="Readiness" size="sm" />
+                  <DonutProgress value={item.completion} label="Completion" size="sm" />
                 </div>
               </div>
             ))}

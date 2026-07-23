@@ -1,9 +1,9 @@
 import { Download, FileText, MessageSquareText, Star, Trophy } from "lucide-react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { results } from "@/data/student";
 
 export function ResultsSection() {
@@ -20,7 +20,7 @@ export function ResultsSection() {
           </Button>
         }
       />
-      <section className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid min-w-0 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         {[
           { label: "Latest score", value: "88%", icon: Trophy },
           { label: "Best score", value: "91%", icon: Star },
@@ -41,7 +41,7 @@ export function ResultsSection() {
         ))}
       </section>
 
-      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
         <Card>
           <CardHeader>
             <CardTitle>Assessment Report Cards</CardTitle>
@@ -49,8 +49,8 @@ export function ResultsSection() {
           </CardHeader>
           <CardContent className="space-y-3">
             {results.map((item) => (
-              <div key={item.title} className="rounded-lg border p-3 sm:p-4">
-                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <div key={item.title} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-4">
+                <div className="min-w-0">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-semibold">{item.title}</h3>
@@ -58,12 +58,8 @@ export function ResultsSection() {
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{item.feedback}</p>
                   </div>
-                  <div className="text-left sm:text-right">
-                    <p className="text-2xl font-bold">{item.score}%</p>
-                    <p className="text-sm text-muted-foreground">Rank {item.rank}</p>
-                  </div>
                 </div>
-                <Progress className="mt-4" value={item.score} />
+                <DonutProgress value={item.score} caption={`Rank ${item.rank}`} size="sm" className="justify-self-start sm:justify-self-end" />
               </div>
             ))}
           </CardContent>
@@ -73,7 +69,7 @@ export function ResultsSection() {
             <CardTitle>Answer Review</CardTitle>
             <CardDescription>Section-wise result breakdown.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
             {[
               { label: "Aptitude", correct: 24, total: 30, value: 80 },
               { label: "Coding MCQ", correct: 18, total: 20, value: 90 },
@@ -81,16 +77,10 @@ export function ResultsSection() {
               { label: "Technical Core", correct: 26, total: 30, value: 86 },
             ].map((item) => (
               <div key={item.label} className="rounded-lg border p-3">
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="font-medium">{item.label}</span>
-                  <span className="text-muted-foreground">
-                    {item.correct}/{item.total}
-                  </span>
-                </div>
-                <Progress className="mt-3" value={item.value} />
+                <DonutProgress value={item.value} label={item.label} caption={`${item.correct}/${item.total} correct`} size="sm" />
               </div>
             ))}
-            <Button className="w-full" variant="outline">
+            <Button className="w-full sm:col-span-2 xl:col-span-1" variant="outline">
               View Answer Sheet
             </Button>
           </CardContent>

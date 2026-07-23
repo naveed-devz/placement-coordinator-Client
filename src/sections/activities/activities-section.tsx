@@ -1,9 +1,9 @@
 import { CalendarCheck, ChevronRight, Filter, MapPin } from "lucide-react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { activities } from "@/data/student";
 
 export function ActivitiesSection() {
@@ -62,11 +62,7 @@ export function ActivitiesSection() {
             <CardDescription>This month</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div>
-              <p className="text-4xl font-bold">91%</p>
-              <p className="text-sm text-muted-foreground">10 of 11 required activities attended</p>
-            </div>
-            <Progress value={91} />
+            <DonutProgress value={91} label="Attendance" caption="10 of 11 required activities attended" size="lg" />
             <div className="rounded-lg border bg-background p-3 text-sm">
               Next required activity starts at <span className="font-semibold">10:00 AM tomorrow</span>.
             </div>

@@ -1,9 +1,9 @@
 import { Activity, Clock3, Zap } from "lucide-react";
+import { DonutProgress } from "@/components/common/donut-progress";
 import { MetricCards } from "@/components/common/metric-cards";
 import { SkillBars } from "@/components/common/skill-bars";
 import { TaskList } from "@/components/common/task-list";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { feedback } from "@/data/student";
 import type { TaskItem } from "@/types/student";
 
@@ -31,8 +31,8 @@ export function DashboardSection({
               <p className="mt-1 text-3xl font-bold">12 days</p>
             </div>
           </div>
-          <div className="mt-5">
-            <Progress value={78} />
+          <div className="mt-5 rounded-lg border bg-background p-3">
+            <DonutProgress value={78} label="Overall readiness" caption="Based on tasks, scores, and practice activity" />
           </div>
         </div>
 

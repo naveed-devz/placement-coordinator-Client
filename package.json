@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-commit-history.mjs",
     "build": "tsc -b && vite build",
     "generate:guides": "node scripts/generate-study-guides.mjs",
     "validate:guides": "node scripts/validate-study-guides.mjs",
+    "generate:commits": "node scripts/generate-commit-history.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

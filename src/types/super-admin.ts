@@ -9,6 +9,7 @@ export type SuperAdminNavLabel =
   | "Analytics"
   | "Support"
   | "Audit Logs"
+  | "Changelog"
   | "Settings";
 
 export type SuperAdminNavItem = {
@@ -51,4 +52,28 @@ export type SupportTicket = {
   organization: string;
   priority: string;
   status: string;
+};
+
+export type CommitFile = {
+  path: string;
+  added: number;
+  removed: number;
+  // Unified-diff text for this file (may be empty for large/generated files).
+  patch: string;
+  // True when the patch was cut off at the line cap.
+  patchTruncated: boolean;
+};
+
+export type CommitEntry = {
+  hash: string;
+  author: string;
+  date: string;
+  message: string;
+  area: string;
+  body: string;
+  filesChanged: number;
+  insertions: number;
+  deletions: number;
+  // Top changed files (capped). `filesChanged` is the true total.
+  files: CommitFile[];
 };

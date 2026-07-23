@@ -1,7 +1,8 @@
-import { Activity, BarChart3, Check, Clock3, Zap } from "lucide-react";
+import { Activity, BarChart3, Check, CircleDashed, Clock3, LoaderCircle, Zap } from "lucide-react";
 import { AnalyticsAndLeaderboard } from "@/components/common/analytics-leaderboard";
 import { SectionIntro } from "@/components/common/section-intro";
 import { SkillBars } from "@/components/common/skill-bars";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { milestones } from "@/data/student";
@@ -41,13 +42,26 @@ export function PreparationProgressSection() {
               <div key={item.label} className="flex items-center gap-3 rounded-lg border p-3">
                 <div
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-lg",
-                    item.done ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground",
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                    item.status === "Completed"
+                      ? "bg-secondary text-secondary-foreground"
+                      : item.status === "In progress"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-muted text-muted-foreground",
                   )}
                 >
-                  <Check className="h-4 w-4" />
+                  {item.status === "Completed" ? (
+                    <Check className="h-4 w-4" />
+                  ) : item.status === "In progress" ? (
+                    <LoaderCircle className="h-4 w-4" />
+                  ) : (
+                    <CircleDashed className="h-4 w-4" />
+                  )}
                 </div>
-                <span className="text-sm font-medium">{item.label}</span>
+                <span className="min-w-0 flex-1 text-sm font-medium">{item.label}</span>
+                <Badge variant={item.status === "Completed" ? "secondary" : item.status === "In progress" ? "warning" : "outline"}>
+                  {item.status}
+                </Badge>
               </div>
             ))}
           </CardContent>

@@ -7,25 +7,21 @@ import {
   LineChart,
   ListChecks,
   LogIn,
-  ShieldCheck,
   Sparkles,
-  UserRound,
-  Users,
 } from "lucide-react";
 import { BrandLogo } from "@/components/common/brand-logo";
 import { Button } from "@/components/ui/button";
 import { careerRoadmaps } from "@/data/student";
 import { materialCategories } from "@/sections/study-materials/study-materials-data";
 import { studyGuideManifest } from "@/sections/study-materials/study-guide-registry";
-import type { UserRole } from "@/types/auth";
 
 const subjectCount = studyGuideManifest.length;
 
 const heroStats = [
   { value: `${subjectCount}+`, label: "Tech study guides" },
+  { value: `${materialCategories.length}`, label: "Subject categories" },
   { value: `${careerRoadmaps.length}`, label: "Career roadmaps" },
-  { value: "3", label: "Role-based portals" },
-  { value: "8", label: "Subject categories" },
+  { value: "9", label: "Stages per subject" },
 ];
 
 const features = [
@@ -47,12 +43,12 @@ const features = [
   {
     icon: ClipboardCheck,
     title: "Assessments",
-    description: "Self-assessments and coordinator-created tests with scores, feedback, and weak-area insights.",
+    description: "Self-assessments and mentor-created tests with scores, feedback, and weak-area insights.",
   },
   {
     icon: ListChecks,
     title: "Daily Tasks & Homework",
-    description: "A daily task bar and placement homework so students always know the next action.",
+    description: "A daily task bar and placement homework so you always know the next action.",
   },
   {
     icon: LineChart,
@@ -61,45 +57,15 @@ const features = [
   },
 ];
 
-const roleCards: { role: UserRole; icon: typeof UserRound; title: string; blurb: string; cta: string }[] = [
-  {
-    role: "student",
-    icon: UserRound,
-    title: "Student",
-    blurb: "Learn technologies, practice, take assessments, and track placement readiness.",
-    cta: "Enter student portal",
-  },
-  {
-    role: "admin",
-    icon: Users,
-    title: "Organization Admin",
-    blurb: "Manage students, sections, coordinators, assessments, announcements, and reports.",
-    cta: "Enter admin portal",
-  },
-  {
-    role: "super-admin",
-    icon: ShieldCheck,
-    title: "Super Admin",
-    blurb: "Oversee organizations, requests, plans, platform analytics, and audit logs.",
-    cta: "Enter super admin",
-  },
-];
-
-export function LandingScreen({
-  onEnterDemo,
-  onQuickLogin,
-}: {
-  onEnterDemo: () => void;
-  onQuickLogin: (role: UserRole) => void;
-}) {
+export function LandingScreen({ onEnterDemo }: { onEnterDemo: () => void }) {
   return (
     <div className="student-shell min-h-screen">
       <header className="sticky top-0 z-30 border-b bg-white/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <BrandLogo subtitle="Placement prep" />
-          <Button variant="outline" onClick={onEnterDemo}>
+          <Button onClick={onEnterDemo}>
             <LogIn className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign in</span>
+            Sign in
           </Button>
         </div>
       </header>
@@ -117,18 +83,17 @@ export function LandingScreen({
               placements.
             </h1>
             <p className="max-w-xl text-base leading-7 text-muted-foreground">
-              PlacePrep gives students structured, interview-oriented study guides, career roadmaps, coding practice,
-              and self-assessments — while coordinators and admins run the placement program from the same platform.
+              PlacePrep gives you structured, interview-oriented study guides, career roadmaps, coding practice, and
+              self-assessments — with your preparation progress tracked in one place.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button size="default" onClick={() => onQuickLogin("student")}>
-                Launch student demo <ArrowRight className="h-4 w-4" />
+              <Button size="default" onClick={onEnterDemo}>
+                Get started <ArrowRight className="h-4 w-4" />
               </Button>
               <Button variant="outline" onClick={onEnterDemo}>
-                Explore all roles
+                Sign in
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">No signup needed — this is a live product demo.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -143,7 +108,7 @@ export function LandingScreen({
 
         {/* Features */}
         <section className="py-6">
-          <h2 className="text-2xl font-bold">Everything a student needs to prepare</h2>
+          <h2 className="text-2xl font-bold">Everything you need to prepare</h2>
           <p className="mt-1 text-sm text-muted-foreground">Built around how placement preparation actually works.</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
@@ -168,7 +133,7 @@ export function LandingScreen({
                 curriculum with Learn, Examples, Visualize, Code, Practice, Interview, and Revision views.
               </p>
             </div>
-            <Button variant="outline" onClick={() => onQuickLogin("student")}>
+            <Button variant="outline" onClick={onEnterDemo}>
               Browse the library <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
@@ -191,42 +156,15 @@ export function LandingScreen({
           </div>
         </section>
 
-        {/* Roles */}
-        <section className="py-12">
-          <h2 className="text-2xl font-bold">Built for every role in the program</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Jump straight into any portal — no credentials required.</p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {roleCards.map((card) => (
-              <div key={card.role} className="flex flex-col rounded-xl border bg-white p-6 shadow-soft">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted text-secondary">
-                  <card.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">{card.title}</h3>
-                <p className="mt-1 flex-1 text-sm leading-6 text-muted-foreground">{card.blurb}</p>
-                <Button className="mt-4 w-full" variant="outline" onClick={() => onQuickLogin(card.role)}>
-                  {card.cta} <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* Final CTA */}
-        <section className="overflow-hidden rounded-2xl bg-primary px-6 py-10 text-center text-primary-foreground shadow-soft sm:px-10">
-          <h2 className="text-2xl font-bold sm:text-3xl">See the whole product in two minutes.</h2>
+        <section className="mt-12 overflow-hidden rounded-2xl bg-primary px-6 py-10 text-center text-primary-foreground shadow-soft sm:px-10">
+          <h2 className="text-2xl font-bold sm:text-3xl">Start preparing today.</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm text-primary-foreground/85">
-            Start as a student, then switch to the admin and super-admin portals to see the full placement workflow.
+            Learn a new technology, practice coding, and track your placement readiness — all in one place.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button variant="secondary" onClick={() => onQuickLogin("student")}>
-              Launch student demo <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white/40 bg-transparent text-primary-foreground hover:bg-white/10"
-              onClick={onEnterDemo}
-            >
-              Sign in with demo accounts
+          <div className="mt-6 flex justify-center">
+            <Button variant="secondary" onClick={onEnterDemo}>
+              Get started <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
         </section>
@@ -235,7 +173,7 @@ export function LandingScreen({
       <footer className="border-t bg-white/70">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:px-6">
           <BrandLogo subtitle="Placement prep" />
-          <p>Product demo · PlacePrep</p>
+          <p>PlacePrep · Learn &amp; get placement-ready</p>
         </div>
       </footer>
     </div>

@@ -10,7 +10,6 @@ import {
   Code2,
   FileQuestion,
   FolderKanban,
-  Lock,
   MessageSquareText,
   Play,
   Search,
@@ -24,6 +23,11 @@ import { roadmapFamilies, roadmapTracks, type RoadmapNode, type RoadmapTrack } f
 
 type DetailTab = "Learn" | "Practice" | "Interview" | "Project" | "Revision";
 type TrackTab = "Overview" | "Projects" | "Interview" | "Companies";
+type NodeStatus = "Not started" | "In progress" | "Completed";
+
+function nodeKey(trackId: string, label: string) {
+  return `${trackId}::${label}`;
+}
 
 export function CareerRoadmapsSection({ onAction }: { onAction: (message: string) => void }) {
   const [selectedId, setSelectedId] = useState("software");
@@ -31,16 +35,62 @@ export function CareerRoadmapsSection({ onAction }: { onAction: (message: string
   const [query, setQuery] = useState("");
   const [trackTab, setTrackTab] = useState<TrackTab>("Overview");
   const [detailNode, setDetailNode] = useState<RoadmapNode | null>(null);
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const [started, setStarted] = useState<Set<string>>(new Set());
   const selected = roadmapTracks.find((item) => item.id === selectedId) ?? roadmapTracks[0];
   const filtered = useMemo(() => roadmapTracks.filter((item) => {
     return (family === "All" || item.family === family) && item.title.toLowerCase().includes(query.toLowerCase());
   }), [family, query]);
 
-  if (detailNode) {
-    return <RoadmapNodePage track={selected} node={detailNode} onAction={onAction} onBack={() => setDetailNode(null)} />;
+  function statusOf(node: RoadmapNode): NodeStatus {
+    const key = nodeKey(selected.id, node.label);
+    if (completed.has(key)) return "Completed";
+    if (started.has(key)) return "In progress";
+    return "Not started";
   }
 
-  const currentIndex = Math.min(2, selected.nodes.length - 1);
+  function openNode(node: RoadmapNode) {
+    const key = nodeKey(selected.id, node.label);
+    setStarted((prev) => {
+      if (prev.has(key) || completed.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+    setDetailNode(node);
+  }
+
+  function completeNode(node: RoadmapNode) {
+    const key = nodeKey(selected.id, node.label);
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+    setStarted((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+    onAction(`${node.label} marked complete.`);
+  }
+
+  if (detailNode) {
+    return (
+      <RoadmapNodePage
+        track={selected}
+        node={detailNode}
+        status={statusOf(detailNode)}
+        onAction={onAction}
+        onComplete={() => completeNode(detailNode)}
+        onBack={() => setDetailNode(null)}
+      />
+    );
+  }
+
+  const completedCount = selected.nodes.filter((node) => completed.has(nodeKey(selected.id, node.label))).length;
+  const nextNode = selected.nodes.find((node) => statusOf(node) !== "Completed") ?? selected.nodes[0];
 
   return (
     <section className="min-w-0 space-y-4">
@@ -95,7 +145,7 @@ export function CareerRoadmapsSection({ onAction }: { onAction: (message: string
               <Meta label="Level" value={selected.difficulty} />
               <Meta label="Typical range" value={selected.packageRange} />
             </div>
-            <Button onClick={() => setDetailNode(selected.nodes[currentIndex])}><Play className="h-4 w-4" /> Continue</Button>
+            <Button onClick={() => openNode(nextNode)}><Play className="h-4 w-4" /> {completedCount > 0 ? "Continue" : "Start"}</Button>
           </div>
         </div>
       </section>
@@ -103,23 +153,23 @@ export function CareerRoadmapsSection({ onAction }: { onAction: (message: string
       <section className="border-y bg-white">
         <div className="flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
           <div><h3 className="font-semibold">Learning path</h3><p className="text-sm text-muted-foreground">Open a milestone for focused learning and practice.</p></div>
-          <span className="hidden text-sm text-muted-foreground sm:block">2 of {selected.nodes.length} complete</span>
+          <span className="hidden text-sm text-muted-foreground sm:block">{completedCount} of {selected.nodes.length} complete</span>
         </div>
         <ol>
           {selected.nodes.map((node, index) => {
-            const status = index < 2 ? "complete" : index === currentIndex ? "current" : index < currentIndex + 3 ? "available" : "locked";
+            const status = statusOf(node);
             return (
               <li key={node.label} className="border-b last:border-b-0">
                 <button
-                  className={cn("grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/60 sm:px-5 md:grid-cols-[44px_180px_minmax(0,1fr)_110px_20px] md:items-center", status === "current" && "bg-primary/5")}
-                  onClick={() => setDetailNode(node)}
+                  className={cn("grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/60 sm:px-5 md:grid-cols-[44px_180px_minmax(0,1fr)_110px_20px] md:items-center", status === "In progress" && "bg-primary/5")}
+                  onClick={() => openNode(node)}
                 >
-                  <span className={cn("flex h-8 w-8 items-center justify-center rounded-md border text-sm font-bold", status === "complete" && "border-secondary bg-secondary text-white", status === "current" && "border-primary bg-primary text-white")}>
-                    {status === "complete" ? <Check className="h-4 w-4" /> : status === "locked" ? <Lock className="h-3.5 w-3.5" /> : index + 1}
+                  <span className={cn("flex h-8 w-8 items-center justify-center rounded-md border text-sm font-bold", status === "Completed" && "border-secondary bg-secondary text-white", status === "In progress" && "border-primary bg-primary text-white")}>
+                    {status === "Completed" ? <Check className="h-4 w-4" /> : index + 1}
                   </span>
                   <span className="font-semibold">{node.label}</span>
                   <span className="line-clamp-2 text-sm text-muted-foreground">{node.summary}</span>
-                  <Badge variant={status === "complete" ? "secondary" : status === "current" ? "warning" : "outline"}>{status}</Badge>
+                  <Badge variant={status === "Completed" ? "secondary" : status === "In progress" ? "warning" : "outline"}>{status}</Badge>
                   <ChevronRight className="hidden h-4 w-4 text-muted-foreground md:block" />
                 </button>
               </li>
@@ -167,7 +217,7 @@ function Summary({ icon: Icon, title, body, detail }: { icon: typeof Target; tit
   return <div className="bg-white p-4 sm:p-5"><Icon className="h-5 w-5 text-primary" /><p className="mt-3 text-xs font-semibold uppercase text-muted-foreground">{title}</p><p className="mt-1 font-semibold">{body}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{detail}</p></div>;
 }
 
-function RoadmapNodePage({ track, node, onAction, onBack }: { track: RoadmapTrack; node: RoadmapNode; onAction: (message: string) => void; onBack: () => void }) {
+function RoadmapNodePage({ track, node, status, onAction, onComplete, onBack }: { track: RoadmapTrack; node: RoadmapNode; status: NodeStatus; onAction: (message: string) => void; onComplete: () => void; onBack: () => void }) {
   const [tab, setTab] = useState<DetailTab>("Learn");
   const index = track.nodes.findIndex((item) => item.label === node.label);
   const previous = index > 0 ? track.nodes[index - 1] : null;
@@ -176,7 +226,7 @@ function RoadmapNodePage({ track, node, onAction, onBack }: { track: RoadmapTrac
   return (
     <article className="min-w-0 bg-white">
       <header className="border-b px-4 py-4 sm:px-6">
-        <div className="flex flex-wrap items-center gap-2"><Button size="sm" variant="outline" onClick={onBack}><ArrowLeft className="h-4 w-4" /> Roadmap</Button><Badge variant="secondary">{track.title}</Badge><Badge variant="outline">Milestone {index + 1}</Badge></div>
+        <div className="flex flex-wrap items-center gap-2"><Button size="sm" variant="outline" onClick={onBack}><ArrowLeft className="h-4 w-4" /> Roadmap</Button><Badge variant="secondary">{track.title}</Badge><Badge variant="outline">Milestone {index + 1}</Badge><Badge variant={status === "Completed" ? "secondary" : status === "In progress" ? "warning" : "outline"}>{status}</Badge></div>
         <h1 className="mt-4 text-2xl font-bold sm:text-3xl">{node.label}</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{node.summary}. Learn the model, see it operate, practise it, and connect it to interview evidence.</p>
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm"><span><strong>4-6 hours</strong> estimated</span><span>Prerequisite: <strong>{previous?.label ?? "None"}</strong></span><span><strong>{concepts.length}</strong> concepts</span></div>
@@ -191,7 +241,14 @@ function RoadmapNodePage({ track, node, onAction, onBack }: { track: RoadmapTrac
         <aside className="border-t px-4 py-5 lg:border-t-0">
           <p className="text-xs font-semibold uppercase text-muted-foreground">Concept outline</p>
           <ol className="mt-3 space-y-1">{concepts.map((concept) => <li key={concept} className="flex gap-2 py-1.5 text-sm"><Circle className="mt-1 h-3 w-3 shrink-0 text-primary" />{concept}</li>)}</ol>
-          <div className="mt-5 grid gap-2"><Button onClick={() => onAction(`${node.label} completed.`)}><Check className="h-4 w-4" />Mark complete</Button><Button variant="outline" onClick={() => onAction(`${node.label} bookmarked.`)}><Bookmark className="h-4 w-4" />Bookmark</Button></div>
+          <div className="mt-5 grid gap-2">
+            {status === "Completed" ? (
+              <Button variant="secondary" disabled><Check className="h-4 w-4" />Completed</Button>
+            ) : (
+              <Button onClick={onComplete}><Check className="h-4 w-4" />Mark complete</Button>
+            )}
+            <Button variant="outline" onClick={() => onAction(`${node.label} bookmarked.`)}><Bookmark className="h-4 w-4" />Bookmark</Button>
+          </div>
         </aside>
       </div>
     </article>

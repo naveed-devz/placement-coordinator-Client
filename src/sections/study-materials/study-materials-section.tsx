@@ -39,6 +39,7 @@ export function StudyMaterialsSection({ onAction }: { onAction: (message: string
   const [guide, setGuide] = useState<StudyGuide | null>(null);
   const [guideLoading, setGuideLoading] = useState(true);
   const [guideError, setGuideError] = useState<string | null>(null);
+  const [completedTopics, setCompletedTopics] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const id = guideIdForTitle(selectedTech);
@@ -66,6 +67,22 @@ export function StudyMaterialsSection({ onAction }: { onAction: (message: string
   );
   const selected = technologyMaterials[selectedTech];
   const selectedManifest = studyGuideManifest.find((item) => item.title === selectedTech);
+  const currentGuideId = selectedManifest?.id;
+  const totalTopics = selectedManifest?.topics ?? 0;
+  const completedCount = currentGuideId
+    ? [...completedTopics].filter((key) => key.startsWith(`${currentGuideId}::`)).length
+    : 0;
+  const progressPct = totalTopics ? Math.round((completedCount / totalTopics) * 100) : 0;
+
+  function toggleTopicComplete(guideId: string, topicId: string) {
+    setCompletedTopics((prev) => {
+      const key = `${guideId}::${topicId}`;
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   if (chapterOpen) {
     if (guideLoading) return <GuideStatus title="Loading study guide" description={`Reading ${selectedTech} content from JSON...`} loading />;
@@ -75,6 +92,8 @@ export function StudyMaterialsSection({ onAction }: { onAction: (message: string
         activeTab={activeTab}
         guide={guide}
         activeStage={activeStage}
+        completedTopics={completedTopics}
+        onToggleComplete={toggleTopicComplete}
         onAction={onAction}
         onBack={() => setChapterOpen(false)}
         onChangeTab={setActiveTab}
@@ -163,9 +182,9 @@ export function StudyMaterialsSection({ onAction }: { onAction: (message: string
             <p className="mt-1 text-sm leading-6 text-muted-foreground">{selected.purpose}</p>
           </div>
           <div className="grid grid-cols-3 divide-x rounded-md border text-center lg:min-w-[360px]">
-            <Stat label="Progress" value="42%" />
-            <Stat label="Completed" value="18" />
-            <Stat label="Revision" value="4 due" />
+            <Stat label="Progress" value={`${progressPct}%`} />
+            <Stat label="Completed" value={`${completedCount}`} />
+            <Stat label="Topics" value={`${totalTopics}`} />
           </div>
         </div>
 
@@ -248,10 +267,12 @@ function CompactPanel({ icon: Icon, title, description, items, action, onClick }
   );
 }
 
-function ChapterPage({ activeTab, guide, activeStage, onAction, onBack, onChangeTab }: {
+function ChapterPage({ activeTab, guide, activeStage, completedTopics, onToggleComplete, onAction, onBack, onChangeTab }: {
   activeTab: ChapterTab;
   guide: StudyGuide;
   activeStage: string;
+  completedTopics: Set<string>;
+  onToggleComplete: (guideId: string, topicId: string) => void;
   onAction: (message: string) => void;
   onBack: () => void;
   onChangeTab: (tab: ChapterTab) => void;
@@ -259,6 +280,7 @@ function ChapterPage({ activeTab, guide, activeStage, onAction, onBack, onChange
   const stage = guide.stages.find((item) => item.title === activeStage) ?? guide.stages[0];
   const [topicIndex, setTopicIndex] = useState(0);
   const topic = stage.topics[topicIndex] ?? stage.topics[0];
+  const topicDone = completedTopics.has(`${guide.id}::${topic.id}`);
 
   function selectTopic(index: number) {
     setTopicIndex(index);
@@ -298,9 +320,32 @@ function ChapterPage({ activeTab, guide, activeStage, onAction, onBack, onChange
         <aside className="border-t px-4 py-5 lg:border-t-0">
           <p className="text-xs font-semibold uppercase text-muted-foreground">Chapter outline</p>
           <ol className="mt-3 space-y-1">
-            {stage.topics.map((item, index) => <li key={item.id}><button className={cn("flex w-full gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-muted", topicIndex === index && "bg-primary/10 font-semibold text-primary")} onClick={() => selectTopic(index)}><span>{String(index + 1).padStart(2, "0")}</span><span>{item.title}</span></button></li>)}
+            {stage.topics.map((item, index) => {
+              const done = completedTopics.has(`${guide.id}::${item.id}`);
+              return (
+                <li key={item.id}>
+                  <button className={cn("flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-muted", topicIndex === index && "bg-primary/10 font-semibold text-primary")} onClick={() => selectTopic(index)}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                    {done ? <CheckCircle2 className="h-4 w-4 shrink-0 text-secondary" /> : null}
+                  </button>
+                </li>
+              );
+            })}
           </ol>
-          <div className="mt-5 grid gap-2"><Button onClick={() => onAction(`${topic.title} marked complete.`)}><CheckCircle2 className="h-4 w-4" />Mark complete</Button><Button variant="outline" onClick={() => onAction(`${topic.title} bookmarked.`)}><Bookmark className="h-4 w-4" />Bookmark</Button></div>
+          <div className="mt-5 grid gap-2">
+            <Button
+              variant={topicDone ? "secondary" : "default"}
+              onClick={() => {
+                onToggleComplete(guide.id, topic.id);
+                onAction(topicDone ? `${topic.title} marked not started.` : `${topic.title} marked complete.`);
+              }}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {topicDone ? "Completed" : "Mark complete"}
+            </Button>
+            <Button variant="outline" onClick={() => onAction(`${topic.title} bookmarked.`)}><Bookmark className="h-4 w-4" />Bookmark</Button>
+          </div>
         </aside>
       </div>
     </article>

@@ -151,7 +151,7 @@ function App() {
     if (showLogin) {
       return <LoginScreen onLogin={loginAs} onBack={() => setShowLogin(false)} />;
     }
-    return <LandingScreen onEnterDemo={() => setShowLogin(true)} onQuickLogin={loginAs} />;
+    return <LandingScreen onEnterDemo={() => setShowLogin(true)} />;
   }
 
   if (userRole === "super-admin") {

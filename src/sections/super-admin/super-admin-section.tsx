@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { BarChart3, Check, CreditCard, LifeBuoy, Plus, Settings, ShieldCheck, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, BarChart3, Check, ChevronDown, ChevronRight, CreditCard, FileText, GitCommitHorizontal, LifeBuoy, LoaderCircle, Plus, Settings, ShieldCheck, X } from "lucide-react";
 import { DonutProgress } from "@/components/common/donut-progress";
 import { SectionIntro } from "@/components/common/section-intro";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { auditLogs, organizationRequests, organizations, platformMetrics, platformUsers, supportTickets } from "@/data/super-admin";
-import type { OrganizationRequest, OrganizationRow, SuperAdminNavLabel } from "@/types/super-admin";
+import { cn } from "@/lib/utils";
+import type { CommitEntry, OrganizationRequest, OrganizationRow, SuperAdminNavLabel } from "@/types/super-admin";
 
 export function SuperAdminSection({ activeNav, onAction }: { activeNav: SuperAdminNavLabel; onAction: (message: string) => void }) {
   const [orgRows, setOrgRows] = useState<OrganizationRow[]>(organizations);
@@ -34,6 +35,7 @@ export function SuperAdminSection({ activeNav, onAction }: { activeNav: SuperAdm
   if (activeNav === "Analytics") return <AnalyticsPage organizations={orgRows} />;
   if (activeNav === "Support") return <SupportPage onAction={onAction} />;
   if (activeNav === "Audit Logs") return <AuditPage />;
+  if (activeNav === "Changelog") return <ChangelogPage />;
   if (activeNav === "Settings") return <PlatformSettingsPage onAction={onAction} />;
 
   return <SuperAdminDashboard organizations={orgRows} requests={requests} onAction={onAction} />;
@@ -362,6 +364,219 @@ function AuditPage() {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+function ChangelogPage() {
+  const [openHash, setOpenHash] = useState<string | null>(null);
+  const [commitHistory, setCommitHistory] = useState<CommitEntry[] | null>(null);
+
+  // Load the (large) commit data only when this admin page is opened.
+  useEffect(() => {
+    let active = true;
+    import("@/data/commit-history").then((module) => {
+      if (active) setCommitHistory(module.commitHistory);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const latest = commitHistory?.[0];
+  const areas = useMemo(
+    () => (commitHistory ? Array.from(new Set(commitHistory.map((commit) => commit.area))) : []),
+    [commitHistory],
+  );
+
+  if (!commitHistory) {
+    return (
+      <>
+        <SectionIntro eyebrow="Changelog" title="Recent code changes across the platform." description="Loading commit history..." />
+        <div className="flex min-h-[240px] items-center justify-center">
+          <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </>
+    );
+  }
+
+  const openCommit = commitHistory.find((commit) => commit.hash === openHash);
+
+  if (openCommit) {
+    return <CommitDetail commit={openCommit} onBack={() => setOpenHash(null)} />;
+  }
+
+  return (
+    <>
+      <SectionIntro
+        eyebrow="Changelog"
+        title="Recent code changes across the platform."
+        description="Every pushed commit to the application — with its short hash. Open a commit to see exactly which files changed in the deployed build."
+      />
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-sm text-muted-foreground">Tracked commits</p>
+            <p className="mt-1 text-2xl font-bold">{commitHistory.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-sm text-muted-foreground">Latest change</p>
+            <p className="mt-1 font-mono text-lg font-bold text-primary">{latest?.hash ?? "—"}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{latest?.date}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-sm text-muted-foreground">Areas touched</p>
+            <p className="mt-1 text-2xl font-bold">{areas.length}</p>
+          </CardContent>
+        </Card>
+      </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Commit history</CardTitle>
+          <CardDescription>Newest first — select a commit to view the deployed changes. Run <span className="font-mono">npm run generate:commits</span> to refresh after a push.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 p-4 sm:p-5">
+          {commitHistory.map((commit) => (
+            <button
+              key={commit.hash}
+              className="flex w-full flex-col gap-2 rounded-lg border p-3 text-left transition-colors hover:bg-muted/60 sm:flex-row sm:items-center sm:gap-4"
+              onClick={() => setOpenHash(commit.hash)}
+            >
+              <div className="flex items-center gap-2">
+                <GitCommitHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <code className="rounded bg-muted px-2 py-1 font-mono text-xs font-semibold text-primary">{commit.hash}</code>
+              </div>
+              <p className="min-w-0 flex-1 text-sm font-medium">{commit.message}</p>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="muted">{commit.area}</Badge>
+                <span>{commit.filesChanged} {commit.filesChanged === 1 ? "file" : "files"}</span>
+                <span aria-hidden>·</span>
+                <span>{commit.date}</span>
+                <ChevronRight className="h-4 w-4" />
+              </div>
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function CommitDetail({ commit, onBack }: { commit: CommitEntry; onBack: () => void }) {
+  const moreCount = commit.filesChanged - commit.files.length;
+  const [openFile, setOpenFile] = useState<string | null>(commit.files.find((file) => file.patch)?.path ?? null);
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="outline" onClick={onBack}><ArrowLeft className="h-4 w-4" /> Changelog</Button>
+        <code className="rounded bg-muted px-2 py-1 font-mono text-xs font-semibold text-primary">{commit.hash}</code>
+        <Badge variant="muted">{commit.area}</Badge>
+      </div>
+
+      <SectionIntro
+        eyebrow="Commit detail"
+        title={commit.message}
+        description={commit.body || `Changes pushed by ${commit.author} on ${commit.date}.`}
+      />
+
+      <section className="grid gap-4 sm:grid-cols-4">
+        {[
+          { label: "Files changed", value: `${commit.filesChanged}`, tone: "" },
+          { label: "Insertions", value: `+${commit.insertions.toLocaleString()}`, tone: "text-secondary" },
+          { label: "Deletions", value: `-${commit.deletions.toLocaleString()}`, tone: "text-destructive" },
+          { label: "Author", value: commit.author, tone: "" },
+        ].map((item) => (
+          <Card key={item.label}>
+            <CardContent className="p-4 sm:p-5">
+              <p className="text-sm text-muted-foreground">{item.label}</p>
+              <p className={cn("mt-1 truncate text-xl font-bold", item.tone)}>{item.value}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Files in this deploy</CardTitle>
+          <CardDescription>
+            {moreCount > 0
+              ? `Top ${commit.files.length} of ${commit.filesChanged} changed files (largest first).`
+              : "All files changed in this commit."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 p-4 sm:p-5">
+          {commit.files.map((file) => {
+            const expanded = openFile === file.path;
+            const hasDiff = Boolean(file.patch);
+            return (
+              <div key={file.path} className="overflow-hidden rounded-lg border">
+                <button
+                  className={cn(
+                    "flex w-full items-center gap-3 p-3 text-left transition-colors",
+                    hasDiff ? "hover:bg-muted/60" : "cursor-default",
+                  )}
+                  onClick={() => hasDiff && setOpenFile(expanded ? null : file.path)}
+                  aria-expanded={hasDiff ? expanded : undefined}
+                >
+                  <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <code className="min-w-0 flex-1 truncate font-mono text-xs sm:text-sm">{file.path}</code>
+                  <span className="shrink-0 font-mono text-xs font-semibold">
+                    <span className="text-secondary">+{file.added}</span> <span className="text-destructive">-{file.removed}</span>
+                  </span>
+                  {hasDiff ? (
+                    expanded ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <span className="shrink-0 text-[11px] text-muted-foreground">diff hidden</span>
+                  )}
+                </button>
+                {hasDiff && expanded ? <DiffView patch={file.patch} truncated={file.patchTruncated} /> : null}
+              </div>
+            );
+          })}
+          {moreCount > 0 ? (
+            <p className="pt-1 text-center text-xs text-muted-foreground">
+              +{moreCount} more {moreCount === 1 ? "file" : "files"} in this commit
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function DiffView({ patch, truncated }: { patch: string; truncated: boolean }) {
+  const lines = patch.split("\n");
+  return (
+    <div className="overflow-x-auto border-t bg-muted/30">
+      <pre className="min-w-full font-mono text-xs leading-5">
+        {lines.map((line, index) => {
+          const type = line.startsWith("+") ? "add" : line.startsWith("-") ? "del" : line.startsWith("@@") ? "hunk" : "ctx";
+          return (
+            <div
+              key={index}
+              className={cn(
+                "whitespace-pre px-3 py-0.5",
+                type === "add" && "bg-secondary/15 text-secondary",
+                type === "del" && "bg-destructive/10 text-destructive",
+                type === "hunk" && "bg-primary/10 font-semibold text-primary",
+                type === "ctx" && "text-muted-foreground",
+              )}
+            >
+              {line || " "}
+            </div>
+          );
+        })}
+      </pre>
+      {truncated ? (
+        <p className="border-t px-3 py-2 text-[11px] text-muted-foreground">Diff truncated — showing the first 200 lines.</p>
+      ) : null}
+    </div>
   );
 }
 

@@ -664,12 +664,14 @@ export const skills: SkillItem[] = [
   { name: "Technical Core", value: 88, change: "+6%" },
 ];
 
-export const milestones = [
-  { label: "Profile completed", done: true },
-  { label: "Resume approved", done: true },
-  { label: "Aptitude benchmark passed", done: true },
-  { label: "Mock interview passed", done: false },
-  { label: "Company shortlist ready", done: false },
+export type MilestoneStatus = "Not started" | "In progress" | "Completed";
+
+export const milestones: { label: string; status: MilestoneStatus }[] = [
+  { label: "Complete your profile", status: "In progress" },
+  { label: "Get your resume approved", status: "Not started" },
+  { label: "Pass the aptitude benchmark", status: "Not started" },
+  { label: "Clear a mock interview", status: "Not started" },
+  { label: "Reach company shortlist readiness", status: "Not started" },
 ];
 
 export const feedback = [

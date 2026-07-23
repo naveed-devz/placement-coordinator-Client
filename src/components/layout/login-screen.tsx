@@ -122,25 +122,6 @@ export function LoginScreen({ onLogin, onBack }: { onLogin: (role: UserRole) => 
                 Login
               </Button>
             </form>
-
-            <div className="mt-6 border-t pt-5">
-              <p className="text-sm font-medium text-foreground">Explore the demo</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                One-click sign in. Password for every demo account is <span className="font-semibold">123456</span>.
-              </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                {demoAccounts.map((account) => (
-                  <Button
-                    key={account.role}
-                    type="button"
-                    variant="outline"
-                    onClick={() => onLogin(account.role)}
-                  >
-                    {account.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -153,9 +134,3 @@ const demoCredentials: Record<string, { password: string; role: UserRole }> = {
   "admin@gmail.com": { password: "123456", role: "admin" },
   "superadmin@gmail.com": { password: "123456", role: "super-admin" },
 };
-
-const demoAccounts: { label: string; role: UserRole }[] = [
-  { label: "Student", role: "student" },
-  { label: "Admin", role: "admin" },
-  { label: "Super Admin", role: "super-admin" },
-];

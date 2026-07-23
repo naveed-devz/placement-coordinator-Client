@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "generate:guides": "node scripts/generate-study-guides.mjs",
+    "validate:guides": "node scripts/validate-study-guides.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

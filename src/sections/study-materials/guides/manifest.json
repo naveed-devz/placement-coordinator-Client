@@ -1,0 +1,346 @@
+[
+  {
+    "id": "java",
+    "title": "Java",
+    "category": "Languages",
+    "purpose": "Build strongly typed applications on the JVM, from interview programs to reliable backend services.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "python",
+    "title": "Python",
+    "category": "Languages",
+    "purpose": "Write expressive programs, automate work, build APIs and prepare for data and backend interviews.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "javascript",
+    "title": "JavaScript",
+    "category": "Languages",
+    "purpose": "Master the browser and Node.js language used across modern frontend and full-stack products.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "typescript",
+    "title": "TypeScript",
+    "category": "Languages",
+    "purpose": "Add precise, maintainable static contracts to JavaScript applications and APIs.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "html",
+    "title": "HTML",
+    "category": "Web",
+    "purpose": "Create semantic, accessible document structure that works across devices and assistive technology.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "css",
+    "title": "CSS",
+    "category": "Web",
+    "purpose": "Control layout, visual hierarchy, responsiveness and interaction without fragile styling.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "react",
+    "title": "React",
+    "category": "Web",
+    "purpose": "Build component-driven interfaces with predictable state, accessible interactions and efficient rendering.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "node-js",
+    "title": "Node.js",
+    "category": "Backend",
+    "purpose": "Run JavaScript on the server and build event-driven APIs, workers and real-time systems.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "express-js",
+    "title": "Express.js",
+    "category": "Backend",
+    "purpose": "Design maintainable Node.js HTTP APIs using routing, middleware and clear service boundaries.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "sql",
+    "title": "SQL",
+    "category": "Data",
+    "purpose": "Model relational data and write correct, performant queries for application and analytics work.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "mongodb",
+    "title": "MongoDB",
+    "category": "Data",
+    "purpose": "Model flexible documents and operate MongoDB safely for application workloads.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "redis",
+    "title": "Redis",
+    "category": "Data",
+    "purpose": "Use in-memory data structures for caching, coordination, queues and low-latency features.",
+    "stages": 9,
+    "topics": 36
+  },
+  {
+    "id": "git-and-github",
+    "title": "Git & GitHub",
+    "category": "DevOps & Cloud",
+    "purpose": "Track code history and collaborate through reviewable changes.",
+    "stages": 9,
+    "topics": 34
+  },
+  {
+    "id": "docker",
+    "title": "Docker",
+    "category": "DevOps & Cloud",
+    "purpose": "Package applications and dependencies into reproducible containers.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "linux",
+    "title": "Linux",
+    "category": "DevOps & Cloud",
+    "purpose": "Operate development and production systems from the command line.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "rest-apis",
+    "title": "REST APIs",
+    "category": "Backend",
+    "purpose": "Design predictable HTTP interfaces between clients and services.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "graphql",
+    "title": "GraphQL",
+    "category": "Backend",
+    "purpose": "Expose typed, client-shaped API queries through a single graph schema.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "authentication",
+    "title": "Authentication",
+    "category": "Backend",
+    "purpose": "Verify identity and enforce permissions without leaking trust across boundaries.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "oop",
+    "title": "OOP",
+    "category": "Computer Science",
+    "purpose": "Model behavior and state through cohesive abstractions and clear contracts.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "design-patterns",
+    "title": "Design Patterns",
+    "category": "Computer Science",
+    "purpose": "Recognize reusable design structures while avoiding unnecessary abstraction.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "data-structures",
+    "title": "Data Structures",
+    "category": "Computer Science",
+    "purpose": "Choose representations that make required operations correct and efficient.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "algorithms",
+    "title": "Algorithms",
+    "category": "Computer Science",
+    "purpose": "Solve problems systematically using patterns, invariants and complexity analysis.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "operating-systems",
+    "title": "Operating Systems",
+    "category": "Computer Science",
+    "purpose": "Understand how programs share CPU, memory, storage and devices.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "computer-networks",
+    "title": "Computer Networks",
+    "category": "Computer Science",
+    "purpose": "Understand how data moves reliably and securely between machines.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "dbms",
+    "title": "DBMS",
+    "category": "Data",
+    "purpose": "Understand database architecture, relational theory, transactions and query execution.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "system-design",
+    "title": "System Design",
+    "category": "Computer Science",
+    "purpose": "Design scalable systems by reasoning about requirements, data, traffic and failure.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "distributed-systems",
+    "title": "Distributed Systems",
+    "category": "Computer Science",
+    "purpose": "Reason about concurrency, partial failure and consistency across networked nodes.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "kafka",
+    "title": "Kafka",
+    "category": "Backend",
+    "purpose": "Build durable event streams for decoupled, high-throughput systems.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "rabbitmq",
+    "title": "RabbitMQ",
+    "category": "Backend",
+    "purpose": "Route messages through queues for reliable asynchronous workflows.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "kubernetes",
+    "title": "Kubernetes",
+    "category": "DevOps & Cloud",
+    "purpose": "Deploy and operate containerized workloads declaratively across a cluster.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "aws",
+    "title": "AWS",
+    "category": "DevOps & Cloud",
+    "purpose": "Compose cloud compute, storage, networking and managed services securely.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "ai-engineering",
+    "title": "AI Engineering",
+    "category": "AI",
+    "purpose": "Build useful language-model features with clear prompts, evaluation and production controls.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "prompt-engineering",
+    "title": "Prompt Engineering",
+    "category": "AI",
+    "purpose": "Build useful language-model features with clear prompts, evaluation and production controls.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "llm",
+    "title": "LLM",
+    "category": "AI",
+    "purpose": "Build useful language-model features with clear prompts, evaluation and production controls.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "rag",
+    "title": "RAG",
+    "category": "AI",
+    "purpose": "Ground model answers in retrieved domain knowledge using embeddings and search.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "vector-databases",
+    "title": "Vector Databases",
+    "category": "AI",
+    "purpose": "Ground model answers in retrieved domain knowledge using embeddings and search.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "langchain",
+    "title": "LangChain",
+    "category": "AI",
+    "purpose": "Orchestrate model calls, tools and state into inspectable AI workflows.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "langgraph",
+    "title": "LangGraph",
+    "category": "AI",
+    "purpose": "Orchestrate model calls, tools and state into inspectable AI workflows.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "mcp",
+    "title": "MCP",
+    "category": "AI",
+    "purpose": "Orchestrate model calls, tools and state into inspectable AI workflows.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "ai-agents",
+    "title": "AI Agents",
+    "category": "AI",
+    "purpose": "Orchestrate model calls, tools and state into inspectable AI workflows.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "hr-interview",
+    "title": "HR Interview",
+    "category": "Career",
+    "purpose": "Communicate evidence, motivation and judgment clearly in behavioral interviews.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "resume-preparation",
+    "title": "Resume Preparation",
+    "category": "Career",
+    "purpose": "Present relevant skills and measurable evidence in a recruiter-readable document.",
+    "stages": 9,
+    "topics": 35
+  },
+  {
+    "id": "mock-interviews",
+    "title": "Mock Interviews",
+    "category": "Career",
+    "purpose": "Turn knowledge into clear answers under realistic time and follow-up pressure.",
+    "stages": 9,
+    "topics": 35
+  }
+]

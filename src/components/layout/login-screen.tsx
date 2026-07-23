@@ -1,15 +1,29 @@
 import { useState } from "react";
-import { Building2, Eye, EyeOff, GraduationCap } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { BrandLogo } from "@/components/common/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/auth";
 
 export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) {
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<UserRole>("student");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const account = demoCredentials[email.trim().toLowerCase()];
+
+    if (!account || account.password !== password) {
+      setError("Invalid email or password.");
+      return;
+    }
+
+    setError("");
+    onLogin(account.role);
+  }
 
   return (
     <main className="student-shell min-h-screen">
@@ -38,40 +52,27 @@ export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) 
         <Card className="mx-auto w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>Choose Student or Admin, then enter any credentials to continue.</CardDescription>
+            <CardDescription>Enter your email and password to continue.</CardDescription>
           </CardHeader>
           <CardContent>
             <form
               className="space-y-5"
-              onSubmit={(event) => {
-                event.preventDefault();
-                onLogin(role);
-              }}
+              onSubmit={handleSubmit}
             >
-              <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1">
-                {[
-                  { label: "Student", value: "student" as const, icon: GraduationCap },
-                  { label: "Admin", value: "admin" as const, icon: Building2 },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    className={cn(
-                      "flex h-11 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-colors",
-                      role === item.value ? "bg-white text-primary shadow-sm" : "text-muted-foreground",
-                    )}
-                    onClick={() => setRole(item.value)}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </button>
-                ))}
-              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="identity">
-                  Username or email
+                  Email
                 </label>
-                <Input id="identity" placeholder="student@example.edu" autoComplete="username" />
+                <Input
+                  id="identity"
+                  placeholder="you@example.edu"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setError("");
+                  }}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="password">
@@ -81,9 +82,14 @@ export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) 
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Any password"
+                    placeholder="Enter password"
                     className="pr-11"
                     autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      setError("");
+                    }}
                   />
                   <Button
                     type="button"
@@ -106,10 +112,10 @@ export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) 
                   Forgot password?
                 </button>
               </div>
+              {error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p> : null}
               <Button className="w-full" type="submit">
                 Login
               </Button>
-              <p className="text-center text-sm text-muted-foreground">Need help? Contact placement support.</p>
             </form>
           </CardContent>
         </Card>
@@ -117,3 +123,9 @@ export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) 
     </main>
   );
 }
+
+const demoCredentials: Record<string, { password: string; role: UserRole }> = {
+  "student@gmail.com": { password: "123456", role: "student" },
+  "admin@gmail.com": { password: "123456", role: "admin" },
+  "superadmin@gmail.com": { password: "123456", role: "super-admin" },
+};

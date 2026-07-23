@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { LoginScreen } from "@/components/layout/login-screen";
 import { StudentShell } from "@/components/layout/student-shell";
+import { SuperAdminShell } from "@/components/layout/super-admin-shell";
 import { initialAnnouncements, initialAssessments, initialHomework, initialTasks } from "@/data/student";
 import { AdminSection } from "@/sections/admin/admin-section";
 import { ActivitiesSection } from "@/sections/activities/activities-section";
@@ -15,15 +16,35 @@ import { PreparationProgressSection } from "@/sections/preparation-progress/prep
 import { ProfileSection } from "@/sections/profile/profile-section";
 import { ResultsSection } from "@/sections/results/results-section";
 import { SelfAssessmentSection } from "@/sections/self-assessment/self-assessment-section";
+import { SuperAdminSection } from "@/sections/super-admin/super-admin-section";
 import type { AdminNavLabel } from "@/types/admin";
 import type { UserRole } from "@/types/auth";
+import type { SuperAdminNavLabel } from "@/types/super-admin";
 import type { AnnouncementItem, AssessmentItem, HomeworkItem, NavLabel, TaskItem } from "@/types/student";
 
+function roleFromPath(): UserRole | null {
+  const path = window.location.pathname;
+  if (path.startsWith("/super-admin")) return "super-admin";
+  if (path.startsWith("/teacher")) return "teacher";
+  if (path.startsWith("/admin")) return "admin";
+  if (path.startsWith("/student")) return "student";
+  return null;
+}
+
+function pathForRole(role: UserRole) {
+  if (role === "super-admin") return "/super-admin";
+  if (role === "teacher") return "/teacher";
+  if (role === "admin") return "/admin";
+  return "/student";
+}
+
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>("student");
+  const initialRouteRole = roleFromPath();
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialRouteRole));
+  const [userRole, setUserRole] = useState<UserRole>(initialRouteRole ?? "student");
   const [activeNav, setActiveNav] = useState<NavLabel>("Dashboard");
   const [activeAdminNav, setActiveAdminNav] = useState<AdminNavLabel>("Dashboard");
+  const [activeSuperAdminNav, setActiveSuperAdminNav] = useState<SuperAdminNavLabel>("Dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [query, setQuery] = useState("");
@@ -68,6 +89,22 @@ function App() {
     showToast("All announcements marked read.");
   }
 
+  function loginAs(role: UserRole) {
+    setUserRole(role);
+    setIsLoggedIn(true);
+    setMobileMenuOpen(false);
+    setActiveNav("Dashboard");
+    setActiveAdminNav("Dashboard");
+    setActiveSuperAdminNav("Dashboard");
+    window.history.pushState({}, "", pathForRole(role));
+  }
+
+  function logout() {
+    setIsLoggedIn(false);
+    setMobileMenuOpen(false);
+    window.history.pushState({}, "", "/");
+  }
+
   function renderSection() {
     switch (activeNav) {
       case "Activities":
@@ -102,20 +139,27 @@ function App() {
   }
 
   if (!isLoggedIn) {
+    return <LoginScreen onLogin={loginAs} />;
+  }
+
+  if (userRole === "super-admin") {
     return (
-      <LoginScreen
-        onLogin={(role) => {
-          setUserRole(role);
-          setIsLoggedIn(true);
-          setMobileMenuOpen(false);
-          setActiveNav("Dashboard");
-          setActiveAdminNav("Dashboard");
-        }}
-      />
+      <SuperAdminShell
+        activeNav={activeSuperAdminNav}
+        mobileMenuOpen={mobileMenuOpen}
+        toastMessage={toastMessage}
+        onChangeNav={setActiveSuperAdminNav}
+        onCloseMenu={() => setMobileMenuOpen(false)}
+        onOpenMenu={() => setMobileMenuOpen(true)}
+        onLogout={logout}
+        onDismissToast={() => setToastMessage("")}
+      >
+        <SuperAdminSection activeNav={activeSuperAdminNav} onAction={showToast} />
+      </SuperAdminShell>
     );
   }
 
-  if (userRole === "admin") {
+  if (userRole === "admin" || userRole === "teacher") {
     return (
       <AdminShell
         activeNav={activeAdminNav}
@@ -124,7 +168,7 @@ function App() {
         onChangeNav={setActiveAdminNav}
         onCloseMenu={() => setMobileMenuOpen(false)}
         onOpenMenu={() => setMobileMenuOpen(true)}
-        onLogout={() => setIsLoggedIn(false)}
+        onLogout={logout}
         onDismissToast={() => setToastMessage("")}
       >
         <AdminSection activeNav={activeAdminNav} onAction={showToast} />
@@ -142,7 +186,7 @@ function App() {
       onCloseMenu={() => setMobileMenuOpen(false)}
       onOpenMenu={() => setMobileMenuOpen(true)}
       onToggleSidebar={() => setSidebarCollapsed((value) => !value)}
-      onLogout={() => setIsLoggedIn(false)}
+      onLogout={logout}
       onDismissToast={() => setToastMessage("")}
     >
       {renderSection()}

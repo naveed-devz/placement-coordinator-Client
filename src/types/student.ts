@@ -5,6 +5,8 @@ export type NavLabel =
   | "Activities"
   | "Daily Tasks"
   | "Placement Homework"
+  | "Study Materials"
+  | "Career Roadmaps"
   | "Coding Practice"
   | "Self-Assessment"
   | "Assessments"
@@ -54,6 +56,56 @@ export type HomeworkItem = {
   score: string;
   status: string;
   submission: string;
+};
+
+export type StudyMaterialItem = {
+  id: string;
+  title: string;
+  type: string;
+  topic: string;
+  source: string;
+  duration: string;
+  level: string;
+  status: string;
+};
+
+export type PreviousQuestionItem = {
+  id: string;
+  company: string;
+  role: string;
+  year: string;
+  round: string;
+  topics: string[];
+  questions: number;
+  difficulty: string;
+};
+
+export type StudyTrackItem = {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  level: string;
+  duration: string;
+  topics: string[];
+  modules: string[];
+  interviewQuestions: string[];
+  mostAskedQuestions: string[];
+};
+
+export type CareerRoadmapItem = {
+  id: string;
+  title: string;
+  fit: string;
+  readiness: number;
+  targetRoles: string[];
+  coreSkills: string[];
+  nextSkills: string[];
+  salaryRange: string;
+  hiringCompanies: string[];
+  marketSignal: string;
+  timeline: string[];
+  sources: string[];
 };
 
 export type SelfAssessmentItem = {

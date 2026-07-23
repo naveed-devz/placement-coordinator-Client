@@ -53,6 +53,11 @@ export type AdminStudentRow = {
   interview: number;
   pending: number;
   status: string;
+  placementStatus: "Placed" | "Not placed" | "In process";
+  company?: string;
+  packageLpa?: number;
+  offerDate?: string;
+  placementRound?: string;
 };
 
 export type CoordinatorRow = {

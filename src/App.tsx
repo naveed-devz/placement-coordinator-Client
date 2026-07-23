@@ -8,6 +8,7 @@ import { AdminSection } from "@/sections/admin/admin-section";
 import { ActivitiesSection } from "@/sections/activities/activities-section";
 import { AnnouncementsSection } from "@/sections/announcements/announcements-section";
 import { AssessmentsSection } from "@/sections/assessments/assessments-section";
+import { CareerRoadmapsSection } from "@/sections/career-roadmaps/career-roadmaps-section";
 import { CodingPracticeSection } from "@/sections/coding-practice/coding-practice-section";
 import { DailyTasksSection } from "@/sections/daily-tasks/daily-tasks-section";
 import { DashboardSection } from "@/sections/dashboard/dashboard-section";
@@ -16,6 +17,7 @@ import { PreparationProgressSection } from "@/sections/preparation-progress/prep
 import { ProfileSection } from "@/sections/profile/profile-section";
 import { ResultsSection } from "@/sections/results/results-section";
 import { SelfAssessmentSection } from "@/sections/self-assessment/self-assessment-section";
+import { StudyMaterialsSection } from "@/sections/study-materials/study-materials-section";
 import { SuperAdminSection } from "@/sections/super-admin/super-admin-section";
 import type { AdminNavLabel } from "@/types/admin";
 import type { UserRole } from "@/types/auth";
@@ -113,6 +115,10 @@ function App() {
         return <DailyTasksSection query={query} setQuery={setQuery} taskItems={taskItems} onTaskAction={handleTaskAction} />;
       case "Placement Homework":
         return <HomeworkSection homeworkItems={homeworkItems} onSubmitHomework={handleSubmitHomework} />;
+      case "Study Materials":
+        return <StudyMaterialsSection onAction={showToast} />;
+      case "Career Roadmaps":
+        return <CareerRoadmapsSection onAction={showToast} />;
       case "Coding Practice":
         return <CodingPracticeSection onAction={showToast} />;
       case "Self-Assessment":

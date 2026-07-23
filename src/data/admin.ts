@@ -112,6 +112,8 @@ export const adminStudents: AdminStudentRow[] = [
     interview: 72,
     pending: 3,
     status: "Active",
+    placementStatus: "In process",
+    placementRound: "Technical Round 2",
   },
   {
     id: "stu-vikram",
@@ -128,6 +130,10 @@ export const adminStudents: AdminStudentRow[] = [
     interview: 90,
     pending: 1,
     status: "Active",
+    placementStatus: "Placed",
+    company: "Infosys",
+    packageLpa: 5.8,
+    offerDate: "Jul 18, 2026",
   },
   {
     id: "stu-meera",
@@ -144,6 +150,10 @@ export const adminStudents: AdminStudentRow[] = [
     interview: 80,
     pending: 0,
     status: "Active",
+    placementStatus: "Placed",
+    company: "TCS Digital",
+    packageLpa: 7.2,
+    offerDate: "Jul 16, 2026",
   },
   {
     id: "stu-aman",
@@ -160,6 +170,8 @@ export const adminStudents: AdminStudentRow[] = [
     interview: 55,
     pending: 6,
     status: "Needs attention",
+    placementStatus: "Not placed",
+    placementRound: "Needs eligibility support",
   },
 ];
 

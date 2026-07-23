@@ -962,33 +962,148 @@ function AnnouncementsAdmin({ onAction, sections }: { onAction: (message: string
 }
 
 function ReportsAdmin({ sections, students }: { sections: SectionRow[]; students: AdminStudentRow[] }) {
+  const placedStudents = students.filter((student) => student.placementStatus === "Placed");
+  const inProcessStudents = students.filter((student) => student.placementStatus === "In process");
+  const notPlacedStudents = students.filter((student) => student.placementStatus === "Not placed");
+  const placementRate = Math.round((placedStudents.length / Math.max(students.length, 1)) * 100);
+  const averagePackage =
+    placedStudents.length > 0
+      ? (placedStudents.reduce((total, student) => total + (student.packageLpa ?? 0), 0) / placedStudents.length).toFixed(1)
+      : "0";
+  const companyStats = placedStudents.reduce<Record<string, { company: string; count: number; bestPackage: number }>>((acc, student) => {
+    const company = student.company ?? "Unknown";
+    acc[company] = acc[company] ?? { company, count: 0, bestPackage: 0 };
+    acc[company].count += 1;
+    acc[company].bestPackage = Math.max(acc[company].bestPackage, student.packageLpa ?? 0);
+    return acc;
+  }, {});
+
   return (
     <>
       <SectionIntro
         eyebrow="Reports"
-        title="Organization and section performance reporting."
-        description="Compare readiness, participation, assessment completion, coordinator activity, and student outcomes."
+        title="Placement statistics and student outcome tracking."
+        description="Track who is placed, who is still in process, who is not placed, and how outcomes vary by section and company."
         action={
           <Button variant="outline">
             <BarChart3 className="h-4 w-4" />
-            Export Report
+            Export Placement Report
           </Button>
         }
       />
-      <section className="grid gap-4 md:grid-cols-3">
-        {sections.slice(0, 3).map((section) => (
-          <Card key={section.id}>
-            <CardHeader>
-              <CardTitle>{section.name}</CardTitle>
-              <CardDescription>{students.filter((student) => student.section === section.name).length} tracked students</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DonutProgress value={section.readiness} label="Readiness" size="sm" />
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[
+          { label: "Placed", value: placedStudents.length, detail: `${placementRate}% placement rate`, tone: "bg-secondary/10 text-secondary" },
+          { label: "In process", value: inProcessStudents.length, detail: "Interview or offer pipeline", tone: "bg-primary/10 text-primary" },
+          { label: "Not placed", value: notPlacedStudents.length, detail: "Needs focused support", tone: "bg-destructive/10 text-destructive" },
+          { label: "Avg package", value: `${averagePackage} LPA`, detail: "Across placed students", tone: "bg-muted text-foreground" },
+        ].map((item) => (
+          <Card key={item.label}>
+            <CardContent className="p-4">
+              <div className={`inline-flex rounded-lg px-3 py-2 text-sm font-semibold ${item.tone}`}>{item.label}</div>
+              <p className="mt-4 text-3xl font-bold">{item.value}</p>
+              <p className="text-sm text-muted-foreground">{item.detail}</p>
             </CardContent>
           </Card>
         ))}
       </section>
+
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Section Placement View</CardTitle>
+            <CardDescription>Placed and pending students by section.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-2">
+            {sections.map((section) => {
+              const sectionStudents = students.filter((student) => student.section === section.name);
+              const sectionPlaced = sectionStudents.filter((student) => student.placementStatus === "Placed").length;
+              const sectionRate = Math.round((sectionPlaced / Math.max(sectionStudents.length, 1)) * 100);
+
+              return (
+                <div key={section.id} className="rounded-lg border p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold">{section.name}</p>
+                    <Badge variant={sectionRate >= 60 ? "secondary" : "warning"}>{sectionRate}% placed</Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {sectionPlaced} placed · {sectionStudents.length - sectionPlaced} pending/not placed
+                  </p>
+                  <div className="mt-3">
+                    <DonutProgress value={sectionRate} label="Placement rate" size="sm" />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Company Outcomes</CardTitle>
+            <CardDescription>Offers received by company.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Object.values(companyStats).map((item) => (
+              <div key={item.company} className="rounded-lg border p-3">
+                <p className="font-semibold">{item.company}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {item.count} offer{item.count > 1 ? "s" : ""} · Best {item.bestPackage} LPA
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-3">
+        <PlacementStudentList title="Placed Students" description="Offer details and package." students={placedStudents} tone="placed" />
+        <PlacementStudentList title="In Process" description="Current interview pipeline." students={inProcessStudents} tone="process" />
+        <PlacementStudentList title="Not Placed" description="Students needing coordinator action." students={notPlacedStudents} tone="risk" />
+      </section>
     </>
+  );
+}
+
+function PlacementStudentList({
+  title,
+  description,
+  students,
+  tone,
+}: {
+  title: string;
+  description: string;
+  students: AdminStudentRow[];
+  tone: "placed" | "process" | "risk";
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {students.map((student) => (
+          <div key={student.id} className="rounded-lg border p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-semibold">{student.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {student.rollNo} · {student.section}
+                </p>
+              </div>
+              <Badge variant={tone === "placed" ? "secondary" : tone === "risk" ? "danger" : "outline"}>{student.placementStatus}</Badge>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {student.placementStatus === "Placed"
+                ? `${student.company} · ${student.packageLpa} LPA · ${student.offerDate}`
+                : student.placementRound}
+            </p>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 

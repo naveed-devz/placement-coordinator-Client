@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
+import { LandingScreen } from "@/components/layout/landing-screen";
 import { LoginScreen } from "@/components/layout/login-screen";
 import { StudentShell } from "@/components/layout/student-shell";
 import { SuperAdminShell } from "@/components/layout/super-admin-shell";
@@ -43,6 +44,7 @@ function pathForRole(role: UserRole) {
 function App() {
   const initialRouteRole = roleFromPath();
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialRouteRole));
+  const [showLogin, setShowLogin] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>(initialRouteRole ?? "student");
   const [activeNav, setActiveNav] = useState<NavLabel>("Dashboard");
   const [activeAdminNav, setActiveAdminNav] = useState<AdminNavLabel>("Dashboard");
@@ -103,6 +105,7 @@ function App() {
 
   function logout() {
     setIsLoggedIn(false);
+    setShowLogin(false);
     setMobileMenuOpen(false);
     window.history.pushState({}, "", "/");
   }
@@ -145,7 +148,10 @@ function App() {
   }
 
   if (!isLoggedIn) {
-    return <LoginScreen onLogin={loginAs} />;
+    if (showLogin) {
+      return <LoginScreen onLogin={loginAs} onBack={() => setShowLogin(false)} />;
+    }
+    return <LandingScreen onEnterDemo={() => setShowLogin(true)} onQuickLogin={loginAs} />;
   }
 
   if (userRole === "super-admin") {

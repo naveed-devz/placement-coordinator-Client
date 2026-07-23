@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { BrandLogo } from "@/components/common/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { UserRole } from "@/types/auth";
 
-export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) {
+export function LoginScreen({ onLogin, onBack }: { onLogin: (role: UserRole) => void; onBack?: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +29,11 @@ export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) 
     <main className="student-shell min-h-screen">
       <div className="mx-auto grid min-h-screen w-full max-w-6xl items-center gap-8 px-4 py-6 sm:py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <section className="space-y-7">
+          {onBack ? (
+            <Button variant="ghost" size="sm" className="-ml-2 w-fit text-muted-foreground" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4" /> Back to home
+            </Button>
+          ) : null}
           <BrandLogo />
           <div className="max-w-xl space-y-4">
             <p className="text-sm font-semibold uppercase tracking-normal text-secondary">Placement Management Portal</p>
@@ -41,7 +46,7 @@ export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) 
             </p>
           </div>
           <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
-            {["3 pending tasks", "82% average score", "2 assessments"].map((item) => (
+            {["40+ tech study guides", "Career roadmaps", "Coding & self-assessments"].map((item) => (
               <div key={item} className="rounded-lg border bg-white/80 p-4 text-sm font-medium shadow-soft">
                 {item}
               </div>
@@ -117,6 +122,25 @@ export function LoginScreen({ onLogin }: { onLogin: (role: UserRole) => void }) 
                 Login
               </Button>
             </form>
+
+            <div className="mt-6 border-t pt-5">
+              <p className="text-sm font-medium text-foreground">Explore the demo</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                One-click sign in. Password for every demo account is <span className="font-semibold">123456</span>.
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {demoAccounts.map((account) => (
+                  <Button
+                    key={account.role}
+                    type="button"
+                    variant="outline"
+                    onClick={() => onLogin(account.role)}
+                  >
+                    {account.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -129,3 +153,9 @@ const demoCredentials: Record<string, { password: string; role: UserRole }> = {
   "admin@gmail.com": { password: "123456", role: "admin" },
   "superadmin@gmail.com": { password: "123456", role: "super-admin" },
 };
+
+const demoAccounts: { label: string; role: UserRole }[] = [
+  { label: "Student", role: "student" },
+  { label: "Admin", role: "admin" },
+  { label: "Super Admin", role: "super-admin" },
+];
